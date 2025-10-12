@@ -1,0 +1,63 @@
+<nav
+  class="navbar navbar-expand-lg navbar-light bg-white border-bottom sticky-top"
+>
+  <div class="container">
+    <a class="navbar-brand d-flex align-items-center gap-2" href="/">
+      <img src="/static/img/logo.png" height="28" alt="Logo" />
+      <span class="fw-bold"
+        >{{ settings.APP_NAME if settings else 'Company' }}</span
+      >
+    </a>
+    <button
+      class="navbar-toggler"
+      type="button"
+      data-bs-toggle="collapse"
+      data-bs-target="#nav"
+      aria-controls="nav"
+      aria-expanded="false"
+      aria-label="Toggle navigation"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="nav">
+      <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          <a class="nav-link" href="/about">{{ i18n.t('nav_about') }}</a>
+        </li>
+        <li class="nav-item dropdown">
+          <a
+            class="nav-link dropdown-toggle"
+            href="#"
+            role="button"
+            data-bs-toggle="dropdown"
+            >{{ i18n.t('nav_portfolio') }}</a
+          >
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="/portfolio">All</a></li>
+            <li><a class="dropdown-item" href="/portfolio#uav">UAV</a></li>
+            <li>
+              <a class="dropdown-item" href="/portfolio#sim">Simulator</a>
+            </li>
+          </ul>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/contact">{{ i18n.t('nav_contact') }}</a>
+        </li>
+        <li class="nav-item dropdown">
+          <a
+            class="nav-link dropdown-toggle"
+            href="#"
+            role="button"
+            data-bs-toggle="dropdown"
+            >{{ i18n.t('lang_'+lang) }}</a
+          >
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="/set-lang/id">Indonesia</a></li>
+            <li><a class="dropdown-item" href="/set-lang/en">English</a></li>
+            <li><a class="dropdown-item" href="/set-lang/ar">العربية</a></li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>

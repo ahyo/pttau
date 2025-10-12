@@ -1,0 +1,38 @@
+{% extends 'layouts/base.html' %}
+{% block title %}Portfolio — {{ settings.APP_NAME if settings else 'Company' }}{% endblock %}
+{% block content %}
+<section class="py-5">
+  <div class="container">
+    <h1 class="h3 mb-4">{{ i18n.t('nav_portfolio') }}</h1>
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+      <div class="col">
+        <div class="card h-100">
+          <img src="/static/img/hero.jpg" class="card-img-top" alt="UAV">
+          <div class="card-body">
+            <h5 class="card-title">UAV</h5>
+            <p class="card-text">Unmanned Aerial Vehicle platforms for surveillance and mapping.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="card h-100">
+          <img src="/static/img/hero.jpg" class="card-img-top" alt="Simulator">
+          <div class="card-body">
+            <h5 class="card-title">Simulator</h5>
+            <p class="card-text">Training simulators for pilot and mission rehearsal.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="card h-100">
+          <img src="/static/img/hero.jpg" class="card-img-top" alt="Weapon System">
+          <div class="card-body">
+            <h5 class="card-title">Weapon System</h5>
+            <p class="card-text">System integration and testing support.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends 'layouts/base.html' %}
+{% block title %}Home — {{ settings.APP_NAME if settings else 'Company' }}{% endblock %}
+{% block content %}
+<section class="py-5 bg-light border-bottom">
+  <div class="container">
+    <div class="row align-items-center g-4">
+      <div class="col-lg-6">
+        <h1 class="display-6 fw-bold">Engineering Services & Weapon System</h1>
+        <p class="lead">A short tagline about aerospace engineering, simulation, product development, system integration, and safety systems.</p>
+        <a href="/portfolio" class="btn btn-primary btn-lg">{{ i18n.t('nav_portfolio') }}</a>
+      </div>
+      <div class="col-lg-6 text-center">
+        <img class="img-fluid rounded shadow" src="/static/img/hero.jpg" alt="Hero">
+      </div>
+    </div>
+  </div>
+</section>
+<section class="py-5">
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-md-6">
+        <div class="p-4 h-100 border rounded-3">
+          <h3 class="h5">Capabilities</h3>
+          <ul class="mb-0">
+            <li>Mission System Integration</li>
+            <li>Simulator Technology</li>
+            <li>Derivative products: UAV, rockets, missiles, torpedoes</li>
+            <li>Airport Design</li>
+            <li>Software Development & IT Consulting</li>
+            <li>Communication Technology</li>
+          </ul>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="p-4 h-100 border rounded-3">
+          <h3 class="h5">Highlights</h3>
+          <div class="row row-cols-2 g-3">
+            <div class="col"><a class="text-decoration-none" href="/portfolio#uav"><div class="border rounded p-3 h-100">UAV</div></a></div>
+            <div class="col"><a class="text-decoration-none" href="/portfolio#kfx-ifx"><div class="border rounded p-3 h-100">KFX/IFX</div></a></div>
+            <div class="col"><a class="text-decoration-none" href="/portfolio#weapon"><div class="border rounded p-3 h-100">Weapon System</div></a></div>
+            <div class="col"><a class="text-decoration-none" href="/portfolio#sim"><div class="border rounded p-3 h-100">Simulator</div></a></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

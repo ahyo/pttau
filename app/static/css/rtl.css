@@ -1,0 +1,3 @@
+html[dir="rtl"] body { direction: rtl; }
+.navbar .ms-auto { margin-left: 0 !important; margin-right: auto !important; }
+.text-start { text-align: right !important; }
