@@ -1,9 +1,10 @@
-from fastapi import FastAPI, Response
+from fastapi import FastAPI, Request, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
 from app.config import settings
-from app.routers import site, api_public
+from app.i18n import pick_lang
+from app.routers import site, api_public, admin
 import logging, os
 
 os.makedirs("app/logs", exist_ok=True)
@@ -21,6 +22,18 @@ app = FastAPI(title=settings.APP_NAME)
 app.add_middleware(SessionMiddleware, secret_key=settings.SECRET_KEY)
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 templates = Jinja2Templates(directory="app/templates")
+templates.env.globals["settings"] = settings
+
+
+@app.middleware("http")
+async def lang_middleware(request: Request, call_next):
+    lang = pick_lang(request, default_lang=settings.DEFAULT_LANG)
+    request.state.lang = lang
+    response: Response = await call_next(request)
+    # persist cookie selama 1 tahun
+    if request.query_params.get("lang") in {"id", "en", "ar"}:
+        response.set_cookie("lang", lang, max_age=60 * 60 * 24 * 365, samesite="lax")
+    return response
 
 
 def set_lang_cookie(resp: Response, lang: str):
@@ -46,3 +59,4 @@ async def set_lang(code: str):
 
 app.include_router(site.router)
 app.include_router(api_public.router, prefix="/api")
+app.include_router(admin.router, prefix="")

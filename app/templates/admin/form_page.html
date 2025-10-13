@@ -1,0 +1,81 @@
+{% extends "layouts/base.html" %}
+{% block title %}{{ 'Create' if mode=='create' else 'Edit' }} Page — {{ settings.APP_NAME if settings else 'Site' }}{% endblock %}
+{% block content %}
+<section class="py-4">
+  <div class="container">
+    <h1 class="h5 mb-3">{{ 'Create' if mode=='create' else 'Edit' }} Page</h1>
+    <form method="post">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label">Slug</label>
+          <input name="slug" class="form-control" value="{{ page.slug if page else '' }}" placeholder="auto from title if empty">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Template</label>
+          <select name="template" class="form-select">
+            {% set sel = (page.template if page else 'about') %}
+            {% for t in ['about','contact','custom'] %}
+              <option value="{{t}}" {{ 'selected' if t==sel else '' }}>{{ t }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-4 d-flex align-items-end">
+          <div class="form-check">
+            {% set pub = (page.is_published if page else True) %}
+            <input class="form-check-input" type="checkbox" name="is_published" id="is_pub" {{ 'checked' if pub else '' }}>
+            <label class="form-check-label" for="is_pub">Published</label>
+          </div>
+        </div>
+      </div>
+      <hr class="my-4">
+      <ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tab-id" role="tab">Bahasa (ID)</a></li>
+        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-en" role="tab">English (EN)</a></li>
+        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-ar" role="tab">العربية (AR)</a></li>
+      </ul>
+      <div class="tab-content border border-top-0 p-3 rounded-bottom">
+        {% set tr_id = (trs['id'] if trs and 'id' in trs else None) %}
+        {% set tr_en = (trs['en'] if trs and 'en' in trs else None) %}
+        {% set tr_ar = (trs['ar'] if trs and 'ar' in trs else None) %}
+        <div class="tab-pane fade show active" id="tab-id" role="tabpanel">
+          <div class="mb-2"><label class="form-label">Title (ID)</label>
+            <input name="id_title" class="form-control" value="{{ tr_id.title if tr_id else '' }}">
+          </div>
+          <div class="mb-2"><label class="form-label">Excerpt (ID)</label>
+            <textarea name="id_excerpt" class="form-control" rows="2">{{ tr_id.excerpt if tr_id else '' }}</textarea>
+          </div>
+          <div class="mb-2"><label class="form-label">Body (ID)</label>
+            <textarea name="id_body" class="form-control" rows="6">{{ tr_id.body if tr_id else '' }}</textarea>
+          </div>
+        </div>
+        <div class="tab-pane fade" id="tab-en" role="tabpanel">
+          <div class="mb-2"><label class="form-label">Title (EN)</label>
+            <input name="en_title" class="form-control" value="{{ tr_en.title if tr_en else '' }}">
+          </div>
+          <div class="mb-2"><label class="form-label">Excerpt (EN)</label>
+            <textarea name="en_excerpt" class="form-control" rows="2">{{ tr_en.excerpt if tr_en else '' }}</textarea>
+          </div>
+          <div class="mb-2"><label class="form-label">Body (EN)</label>
+            <textarea name="en_body" class="form-control" rows="6">{{ tr_en.body if tr_en else '' }}</textarea>
+          </div>
+        </div>
+        <div class="tab-pane fade" id="tab-ar" role="tabpanel" dir="rtl">
+          <div class="mb-2"><label class="form-label">العنوان (AR)</label>
+            <input name="ar_title" class="form-control" value="{{ tr_ar.title if tr_ar else '' }}">
+          </div>
+          <div class="mb-2"><label class="form-label">الملخص (AR)</label>
+            <textarea name="ar_excerpt" class="form-control" rows="2">{{ tr_ar.excerpt if tr_ar else '' }}</textarea>
+          </div>
+          <div class="mb-2"><label class="form-label">المحتوى (AR)</label>
+            <textarea name="ar_body" class="form-control" rows="6">{{ tr_ar.body if tr_ar else '' }}</textarea>
+          </div>
+        </div>
+      </div>
+      <div class="mt-3 d-flex gap-2">
+        <button class="btn btn-primary">{{ 'Create' if mode=='create' else 'Save Changes' }}</button>
+        <a class="btn btn-outline-secondary" href="/admin/pages">Cancel</a>
+      </div>
+    </form>
+  </div>
+</section>
+{% endblock %}

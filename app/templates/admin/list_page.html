@@ -1,0 +1,33 @@
+{% extends "layouts/base.html" %}
+{% block title %}Pages — {{ settings.APP_NAME if settings else 'Site' }}{% endblock %}
+{% block content %}
+<section class="py-4">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h1 class="h5 m-0">Pages</h1>
+      <a class="btn btn-primary btn-sm" href="/admin/pages/create">Create Page</a>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-striped align-middle">
+        <thead><tr><th>ID</th><th>Slug</th><th>Template</</th><th>Published</th><th>Actions</th></tr></thead>
+        <tbody>
+          {% for p in pages %}
+          <tr>
+            <td>{{ p.id }}</td>
+            <td>{{ p.slug }}</td>
+            <td>{{ p.template }}</td>
+            <td>{{ 'Yes' if p.is_published else 'No' }}</td>
+            <td class="text-nowrap">
+              <a class="btn btn-sm btn-outline-primary" href="/admin/pages/{{ p.id }}/edit">Edit</a>
+              <form method="post" action="/admin/pages/{{ p.id }}/delete" class="d-inline" onsubmit="return confirm('Delete this page?')">
+                <button class="btn btn-sm btn-outline-danger">Delete</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+{% endblock %}

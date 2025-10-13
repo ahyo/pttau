@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Request, Depends
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-from ..db import get_db
-from ..i18n import resolve_lang, I18n
+
+from app.services.i18n_db import DBI18n
+from app.db import get_db
 from app.config import settings
 
 templates = Jinja2Templates(directory="app/templates")
@@ -11,8 +12,8 @@ router = APIRouter()
 
 @router.get("/", response_class=HTMLResponse)
 async def home(request: Request, db=Depends(get_db)):
-    lang = await resolve_lang(request)
-    i18n = I18n(lang)
+    lang = getattr(request.state, "lang", "id")
+    i18n = DBI18n(db, lang)
     news = []
     items = []
     return templates.TemplateResponse(
@@ -29,9 +30,9 @@ async def home(request: Request, db=Depends(get_db)):
 
 
 @router.get("/about", response_class=HTMLResponse)
-async def about(request: Request):
-    lang = await resolve_lang(request)
-    i18n = I18n(lang)
+async def about(request: Request, db=Depends(get_db)):
+    lang = getattr(request.state, "lang", "id")
+    i18n = DBI18n(db, lang)
     return templates.TemplateResponse(
         "site/about.html",
         {
@@ -44,9 +45,9 @@ async def about(request: Request):
 
 
 @router.get("/portfolio", response_class=HTMLResponse)
-async def portfolio_index(request: Request):
-    lang = await resolve_lang(request)
-    i18n = I18n(lang)
+async def portfolio_index(request: Request, db=Depends(get_db)):
+    lang = getattr(request.state, "lang", "id")
+    i18n = DBI18n(db, lang)
     categories = []
     return templates.TemplateResponse(
         "site/portfolio_index.html",
@@ -61,9 +62,9 @@ async def portfolio_index(request: Request):
 
 
 @router.get("/contact", response_class=HTMLResponse)
-async def contact(request: Request):
-    lang = await resolve_lang(request)
-    i18n = I18n(lang)
+async def contact(request: Request, db=Depends(get_db)):
+    lang = getattr(request.state, "lang", "id")
+    i18n = DBI18n(db, lang)
     return templates.TemplateResponse(
         "site/contact.html",
         {
