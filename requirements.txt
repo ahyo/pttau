@@ -16,3 +16,4 @@ pydantic-settings>=2.0
 passlib[bcrypt]
 python-slugify
 cryptography>=42
+python-multipart

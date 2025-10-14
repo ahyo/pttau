@@ -1,7 +1,5 @@
 from sqlalchemy import Column, Integer, String, UniqueConstraint
-from sqlalchemy.orm import declarative_base
-
-Base = declarative_base()
+from app.db import Base
 
 
 class UIString(Base):

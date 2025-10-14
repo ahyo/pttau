@@ -1,0 +1,50 @@
+{% extends "layouts/base.html" %} {% block title %}Footer Sections{% endblock %}
+{% block content %}
+<div class="container py-4">
+  <h1 class="h5 mb-3">Footer Sections</h1>
+  <form
+    method="post"
+    action="/admin/footer/section/create"
+    class="row g-2 mb-3"
+  >
+    <div class="col-md-2">
+      <input type="number" name="sort_order" class="form-control" value="0" />
+    </div>
+    <div class="col-md-2">
+      <input name="id_name" class="form-control" placeholder="Name (ID)" />
+    </div>
+    <div class="col-md-2">
+      <input name="en_name" class="form-control" placeholder="Name (EN)" />
+    </div>
+    <div class="col-md-2">
+      <input name="ar_name" class="form-control" placeholder="Name (AR)" />
+    </div>
+    <div class="col-md-2"><button class="btn btn-primary">Add</button></div>
+  </form>
+
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Order</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for s in sections %}
+      <tr>
+        <td>{{ s.id }}</td>
+        <td>{{ s.sort_order }}</td>
+        <td>
+          <a
+            href="/admin/footer/{{s.id}}/links"
+            class="btn btn-sm btn-outline-primary"
+            >Links</a
+          >
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

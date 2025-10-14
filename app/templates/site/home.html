@@ -1,48 +1,336 @@
-{% extends 'layouts/base.html' %}
-{% block title %}Home — {{ settings.APP_NAME if settings else 'Company' }}{% endblock %}
-{% block content %}
-<section class="py-5 bg-light border-bottom">
+{% extends "layouts/base.html" %} {% block title %}{{ settings.APP_NAME }}{%
+endblock %} {% block content %}
+<section class="hero-carousel">
+  <div
+    id="heroCarousel"
+    class="carousel slide carousel-fade"
+    data-bs-ride="carousel"
+    data-bs-interval="7000"
+  >
+    <div class="carousel-indicators">
+      {% for s in slides %}
+      <button
+        type="button"
+        data-bs-target="#heroCarousel"
+        data-bs-slide-to="{{ loop.index0 }}"
+        class="{{ 'active' if loop.first else '' }}"
+      ></button>
+      {% endfor %}
+    </div>
+
+    <div class="carousel-inner">
+      {% for s in slides %}
+      <div
+        class="carousel-item hero-slide {{ 'active' if loop.first else '' }}"
+      >
+        {% if s.item.media_type == 'video' %}
+        <video
+          class="d-block w-100"
+          playsinline
+          muted
+          preload="metadata"
+          poster="{{ s.item.poster_path or '' }}"
+        >
+          <source src="{{ s.item.media_path }}" type="video/mp4" />
+        </video>
+        {% else %}
+        <img
+          src="{{ s.item.media_path }}"
+          class="d-block w-100"
+          alt="{{ s.tr.title if s.tr and s.tr.title else 'Slide' }}"
+        />
+        {% endif %}
+        <div class="hero-overlay"></div>
+        {% if s.tr %}
+        <div
+          class="carousel-caption {{ 'text-start' if loop.index == 1 else '' }}"
+        >
+          {% if s.tr.title %}
+          <h1 class="display-6 fw-bold">{{ s.tr.title }}</h1>
+          {% endif %} {% if s.tr.subtitle %}
+          <p class="lead">{{ s.tr.subtitle }}</p>
+          {% endif %} {% if s.tr.cta_text and s.tr.cta_url %}
+          <a
+            href="{{ s.tr.cta_url }}"
+            class="btn btn-lg btn-primary"
+            style="background-color: #6f869e; border: none"
+          >
+            {{ s.tr.cta_text }}
+          </a>
+          {% endif %}
+        </div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+
+    <button
+      class="carousel-control-prev"
+      type="button"
+      data-bs-target="#heroCarousel"
+      data-bs-slide="prev"
+      aria-label="Prev"
+    >
+      <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+    </button>
+    <button
+      class="carousel-control-next"
+      type="button"
+      data-bs-target="#heroCarousel"
+      data-bs-slide="next"
+      aria-label="Next"
+    >
+      <span class="carousel-control-next-icon" aria-hidden="true"></span>
+    </button>
+  </div>
+</section>
+<!-- Intro band: ringkas & elegan -->
+<section class="section-intro py-5">
   <div class="container">
     <div class="row align-items-center g-4">
-      <div class="col-lg-6">
-        <h1 class="display-6 fw-bold">Engineering Services & Weapon System</h1>
-        <p class="lead">A short tagline about aerospace engineering, simulation, product development, system integration, and safety systems.</p>
-        <a href="/portfolio" class="btn btn-primary btn-lg">{{ i18n.t('nav_portfolio') }}</a>
+      <div class="col-lg-7">
+        <h1 class="display-5 fw-bold mb-3">
+          Engineering Services &amp; Weapon System
+        </h1>
+        <p class="lead text-secondary mb-4">
+          A short tagline about aerospace engineering, simulation, product
+          development, system integration, and safety systems.
+        </p>
+        <div class="d-flex flex-wrap gap-3">
+          <a href="/portfolio" class="btn btn-lg btn-brand shadow-sm">
+            {{ i18n.t('nav_portfolio') }}
+          </a>
+          <a href="/p/about" class="btn btn-lg btn-outline-brand">
+            {{ i18n.t('nav_about') }}
+          </a>
+        </div>
       </div>
-      <div class="col-lg-6 text-center">
-        <img class="img-fluid rounded shadow" src="/static/img/hero.jpg" alt="Hero">
+      <div class="col-lg-5">
+        <!-- Quick metrics / trust signals -->
+        <div class="row g-3">
+          <div class="col-6">
+            <div class="metric-card">
+              <div class="metric-value">25+</div>
+              <div class="metric-label">Projects</div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="metric-card">
+              <div class="metric-value">10+</div>
+              <div class="metric-label">Years Experience</div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="metric-card">
+              <div class="metric-value">6</div>
+              <div class="metric-label">Core Domains</div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="metric-card">
+              <div class="metric-value">ID/EN/AR</div>
+              <div class="metric-label">Multilingual</div>
+            </div>
+          </div>
+        </div>
+        <!-- /metrics -->
       </div>
     </div>
   </div>
 </section>
-<section class="py-5">
+
+<!-- Capabilities & Highlights -->
+<section class="section-muted py-5">
   <div class="container">
     <div class="row g-4">
-      <div class="col-md-6">
-        <div class="p-4 h-100 border rounded-3">
-          <h3 class="h5">Capabilities</h3>
-          <ul class="mb-0">
-            <li>Mission System Integration</li>
-            <li>Simulator Technology</li>
-            <li>Derivative products: UAV, rockets, missiles, torpedoes</li>
-            <li>Airport Design</li>
-            <li>Software Development & IT Consulting</li>
-            <li>Communication Technology</li>
-          </ul>
+      <!-- Capabilities -->
+      <div class="col-lg-6">
+        <div class="card feature-card h-100">
+          <div class="card-body p-4">
+            <div class="d-flex align-items-center mb-3">
+              <i class="bi bi-cpu fs-3 me-2 text-brand"></i>
+              <h3 class="h5 m-0">Capabilities</h3>
+            </div>
+            <div class="row row-cols-1 row-cols-sm-2 g-2">
+              <div class="col">
+                <div class="bullet">
+                  <i class="bi bi-check2"></i> Mission System Integration
+                </div>
+              </div>
+              <div class="col">
+                <div class="bullet">
+                  <i class="bi bi-check2"></i> Simulator Technology
+                </div>
+              </div>
+              <div class="col">
+                <div class="bullet">
+                  <i class="bi bi-check2"></i> UAV / Rockets / Missiles /
+                  Torpedoes
+                </div>
+              </div>
+              <div class="col">
+                <div class="bullet">
+                  <i class="bi bi-check2"></i> Airport Design
+                </div>
+              </div>
+              <div class="col">
+                <div class="bullet">
+                  <i class="bi bi-check2"></i> Software &amp; IT Consulting
+                </div>
+              </div>
+              <div class="col">
+                <div class="bullet">
+                  <i class="bi bi-check2"></i> Communication Technology
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card-footer bg-transparent px-4 pb-4">
+            <a class="btn btn-sm btn-outline-brand" href="/p/about"
+              >Learn More</a
+            >
+          </div>
         </div>
       </div>
-      <div class="col-md-6">
-        <div class="p-4 h-100 border rounded-3">
-          <h3 class="h5">Highlights</h3>
-          <div class="row row-cols-2 g-3">
-            <div class="col"><a class="text-decoration-none" href="/portfolio#uav"><div class="border rounded p-3 h-100">UAV</div></a></div>
-            <div class="col"><a class="text-decoration-none" href="/portfolio#kfx-ifx"><div class="border rounded p-3 h-100">KFX/IFX</div></a></div>
-            <div class="col"><a class="text-decoration-none" href="/portfolio#weapon"><div class="border rounded p-3 h-100">Weapon System</div></a></div>
-            <div class="col"><a class="text-decoration-none" href="/portfolio#sim"><div class="border rounded p-3 h-100">Simulator</div></a></div>
+
+      <!-- Highlights -->
+      <div class="col-lg-6">
+        <div class="card feature-card h-100">
+          <div class="card-body p-4">
+            <div class="d-flex align-items-center mb-3">
+              <i class="bi bi-stars fs-3 me-2 text-brand"></i>
+              <h3 class="h5 m-0">Highlights</h3>
+            </div>
+            <div class="row row-cols-2 g-3">
+              <div class="col">
+                <a class="tile" href="/portfolio#uav" aria-label="UAV">
+                  <i class="bi bi-airplane-fill"></i>
+                  <span>UAV</span>
+                </a>
+              </div>
+              <div class="col">
+                <a class="tile" href="/portfolio#kfx-ifx" aria-label="KFX/IFX">
+                  <i class="bi bi-shield-lock-fill"></i>
+                  <span>KFX/IFX</span>
+                </a>
+              </div>
+              <div class="col">
+                <a
+                  class="tile"
+                  href="/portfolio#weapon"
+                  aria-label="Weapon System"
+                >
+                  <i class="bi bi-bullseye"></i>
+                  <span>Weapon System</span>
+                </a>
+              </div>
+              <div class="col">
+                <a class="tile" href="/portfolio#sim" aria-label="Simulator">
+                  <i class="bi bi-joystick"></i>
+                  <span>Simulator</span>
+                </a>
+              </div>
+            </div>
+          </div>
+          <div class="card-footer bg-transparent px-4 pb-4">
+            <a class="btn btn-sm btn-outline-brand" href="/portfolio"
+              >View Portfolio</a
+            >
           </div>
         </div>
       </div>
     </div>
   </div>
 </section>
+
+<!-- Visi & Misi -->
+<section class="section-vision-mission py-5">
+  <div class="container">
+    <div class="row justify-content-center mb-5">
+      <div class="col-lg-8 text-center">
+        <h2 class="fw-bold mb-3 text-brand">Visi &amp; Misi</h2>
+        <p class="text-secondary mb-0">
+          Komitmen kami dalam membangun masa depan teknologi UAV Indonesia
+        </p>
+      </div>
+    </div>
+
+    <div class="row g-4">
+      <!-- Visi -->
+      <div class="col-lg-5">
+        <div class="card shadow-sm border-0 h-100">
+          <div class="card-body p-4">
+            <div class="d-flex align-items-center mb-3">
+              <i class="bi bi-eye-fill fs-3 me-2 text-brand"></i>
+              <h3 class="h5 fw-bold mb-0">Visi</h3>
+            </div>
+            <p class="mb-0">
+              Menjadi perusahaan terdepan dalam teknologi pesawat tanpa awak
+              (UAV) yang inovatif dan berkualitas, memberikan solusi canggih
+              untuk kebutuhan nasional dan pasar global.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Misi -->
+      <div class="col-lg-7">
+        <div class="card shadow-sm border-0 h-100">
+          <div class="card-body p-4">
+            <div class="d-flex align-items-center mb-3">
+              <i class="bi bi-bullseye fs-3 me-2 text-brand"></i>
+              <h3 class="h5 fw-bold mb-0">Misi</h3>
+            </div>
+            <ul class="list-unstyled mission-list mb-0">
+              <li>
+                <i class="bi bi-check2-circle text-brand me-2"></i>
+                Mengembangkan dan memproduksi UAV dengan teknologi mutakhir yang
+                memenuhi standar keamanan dan performa terbaik.
+              </li>
+              <li>
+                <i class="bi bi-check2-circle text-brand me-2"></i>
+                Mendorong inovasi berkelanjutan melalui riset dan pengembangan
+                di bidang pesawat tanpa awak.
+              </li>
+              <li>
+                <i class="bi bi-check2-circle text-brand me-2"></i>
+                Membangun tim ahli yang profesional dan kreatif dalam desain,
+                produksi, serta aplikasi UAV.
+              </li>
+              <li>
+                <i class="bi bi-check2-circle text-brand me-2"></i>
+                Menjalin kerja sama strategis dengan mitra industri, pemerintah,
+                dan institusi riset untuk memperkuat ekosistem UAV.
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- JS play/pause video -->
+<script>
+  (function () {
+    const el = document.getElementById("heroCarousel");
+    if (!el) return;
+    const pauseAll = () =>
+      el.querySelectorAll("video").forEach((v) => {
+        try {
+          v.pause();
+        } catch (e) {}
+      });
+    const playActive = () => {
+      const vid = el.querySelector(".carousel-item.active video");
+      if (vid) {
+        vid.muted = true;
+        vid.play().catch(() => {});
+      }
+    };
+    el.addEventListener("slide.bs.carousel", pauseAll);
+    el.addEventListener("slid.bs.carousel", playActive);
+    pauseAll();
+    playActive();
+  })();
+</script>
 {% endblock %}

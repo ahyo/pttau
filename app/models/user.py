@@ -1,9 +1,5 @@
 from sqlalchemy import Column, Integer, String, Boolean
-from sqlalchemy.orm import declarative_base
-
-# Jika kamu sudah punya Base di models/base.py, impor itu saja.
-# Di sini untuk mandiri:
-Base = declarative_base()
+from app.db import Base
 
 
 class User(Base):

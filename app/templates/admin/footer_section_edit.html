@@ -1,0 +1,72 @@
+{% extends "layouts/base.html" %} {% block title %}Edit Footer Section{%
+endblock %} {% block content %}
+<div class="container py-4">
+  <h1 class="h5 mb-3">Edit Section #{{ section.id }}</h1>
+  <form method="post">
+    <div class="row g-3">
+      <div class="col-md-3">
+        <label class="form-label">Code</label>
+        <input
+          name="code"
+          class="form-control"
+          value="{{ section.code or '' }}"
+          placeholder="optional"
+        />
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">Sort Order</label>
+        <input
+          name="sort_order"
+          type="number"
+          class="form-control"
+          value="{{ section.sort_order }}"
+        />
+      </div>
+      <div class="col-md-2 d-flex align-items-end">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" name="is_active"
+          id="is_active" {{ 'checked' if section.is_active else '' }}>
+          <label class="form-check-label" for="is_active">Active</label>
+        </div>
+      </div>
+    </div>
+
+    <hr class="my-4" />
+
+    {% set id_tr = trs.get('id') %} {% set en_tr = trs.get('en') %} {% set ar_tr
+    = trs.get('ar') %}
+
+    <div class="row g-3">
+      <div class="col-md-4">
+        <label class="form-label">Name (ID)</label>
+        <input
+          name="id_name"
+          class="form-control"
+          value="{{ id_tr.name if id_tr else '' }}"
+        />
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Name (EN)</label>
+        <input
+          name="en_name"
+          class="form-control"
+          value="{{ en_tr.name if en_tr else '' }}"
+        />
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Name (AR)</label>
+        <input
+          name="ar_name"
+          class="form-control"
+          value="{{ ar_tr.name if ar_tr else '' }}"
+        />
+      </div>
+    </div>
+
+    <div class="mt-4 d-flex gap-2">
+      <button class="btn btn-primary">Save</button>
+      <a class="btn btn-outline-secondary" href="/admin/footer">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

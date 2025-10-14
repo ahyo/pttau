@@ -1,11 +1,18 @@
 from fastapi import FastAPI, Request, Response
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
 from app.config import settings
+from app.db import get_db
 from app.i18n import pick_lang
-from app.routers import site, api_public, admin
+from app.routers import admin_carousel, admin_footer, site, api_public, admin
 import logging, os
+from starlette.exceptions import HTTPException as StarletteHTTPException
+
+from app.services.i18n_db import DBI18n
+
+VALID_LANGS = {"id", "en", "ar"}
 
 os.makedirs("app/logs", exist_ok=True)
 logging.basicConfig(
@@ -23,6 +30,21 @@ app.add_middleware(SessionMiddleware, secret_key=settings.SECRET_KEY)
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 templates = Jinja2Templates(directory="app/templates")
 templates.env.globals["settings"] = settings
+
+
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request: Request, exc: StarletteHTTPException):
+    if exc.status_code == 404:
+        # minimal context supaya navbar tetap punya i18n/lang
+        db = next(get_db())
+        lang = getattr(request.state, "lang", settings.DEFAULT_LANG)
+        i18n = DBI18n(db, lang)
+        return templates.TemplateResponse(
+            "site/404.html",
+            {"request": request, "lang": lang, "i18n": i18n},
+            status_code=404,
+        )
+    return HTMLResponse(str(exc.detail), status_code=exc.status_code)
 
 
 @app.middleware("http")
@@ -47,16 +69,17 @@ def health():
 
 
 @app.get("/set-lang/{code}")
-async def set_lang(code: str):
-    from .i18n import UI_STRINGS
-
-    lang = code if code in UI_STRINGS else "id"
-    resp = Response(status_code=302)
-    set_lang_cookie(resp, lang)
-    resp.headers["Location"] = "/"
+async def set_lang(code: str, request: Request):
+    lang = code if code in VALID_LANGS else settings.DEFAULT_LANG
+    # redirect ke halaman sebelumnya (atau ke '/')
+    back = request.headers.get("referer") or "/"
+    resp = RedirectResponse(url=back, status_code=302)
+    resp.set_cookie("lang", lang, max_age=60 * 60 * 24 * 365, samesite="lax")
     return resp
 
 
 app.include_router(site.router)
 app.include_router(api_public.router, prefix="/api")
 app.include_router(admin.router, prefix="")
+app.include_router(admin_carousel.router)
+app.include_router(admin_footer.router)

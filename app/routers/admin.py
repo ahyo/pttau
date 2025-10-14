@@ -9,8 +9,8 @@ from slugify import slugify
 from app.db import get_db
 from app.deps import verify_password, get_session_admin
 from app.models.page import Page, PageTR
+from app.ui import templates
 
-templates = Jinja2Templates(directory="app/templates")
 router = APIRouter(tags=["admin"])
 
 
@@ -155,6 +155,8 @@ async def pages_create(
 async def pages_edit_form(
     page_id: int, request: Request, db: Session = Depends(get_db)
 ):
+    lang = getattr(request.state, "lang", "id")
+    i18n = DBI18n(db, lang)
     if not require_admin(request):
         return RedirectResponse(url="/admin/login?msg=Please%20login", status_code=302)
     page = db.get(Page, page_id)
@@ -163,7 +165,14 @@ async def pages_edit_form(
     trs = {tr.lang: tr for tr in page.translations}
     return templates.TemplateResponse(
         "admin/form_page.html",
-        {"request": request, "mode": "edit", "page": page, "trs": trs},
+        {
+            "request": request,
+            "mode": "edit",
+            "page": page,
+            "trs": trs,
+            "lang": lang,
+            "i18n": i18n,
+        },
     )
 
 

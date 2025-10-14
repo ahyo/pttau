@@ -1,8 +1,15 @@
 <nav
-  class="navbar navbar-expand-lg navbar-light bg-white border-bottom sticky-top"
+  class="navbar navbar-expand-lg navbar-light border-bottom sticky-top"
+  style="
+    background-color: rgba(111, 134, 158, 0.7);
+    border-bottom: none !important;
+  "
 >
   <div class="container">
-    <a class="navbar-brand d-flex align-items-center gap-2" href="/">
+    <a
+      class="text-white text-uppercase navbar-brand d-flex align-items-center gap-2"
+      href="/"
+    >
       <img src="/static/img/logo.png" height="28" alt="Logo" />
       <span class="fw-bold"
         >{{ settings.APP_NAME if settings else 'Company' }}</span
@@ -22,11 +29,15 @@
     <div class="collapse navbar-collapse" id="nav">
       <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
         <li class="nav-item">
-          <a class="nav-link" href="/about">{{ i18n.t('nav_about') }}</a>
+          <a class="nav-link text-white text-uppercase" href="/about"
+            >{{ i18n.t('nav_about') }}</a
+          >
         </li>
+
         <li class="nav-item dropdown">
           <a
-            class="nav-link dropdown-toggle"
+            class="nav-link dropdown-toggle text-uppercase"
+            style="color: #fff"
             href="#"
             role="button"
             data-bs-toggle="dropdown"
@@ -41,15 +52,18 @@
           </ul>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="/contact">{{ i18n.t('nav_contact') }}</a>
+          <a class="nav-link text-white text-uppercase" href="/contact"
+            >{{ i18n.t('nav_contact') }}</a
+          >
         </li>
         <li class="nav-item dropdown">
           <a
-            class="nav-link dropdown-toggle"
+            class="nav-link dropdown-toggle text-uppercase"
+            style="color: #fff"
             href="#"
             role="button"
             data-bs-toggle="dropdown"
-            >{{ i18n.t('lang_'+lang) }}</a
+            >{{ i18n.t(lang) }}</a
           >
           <ul class="dropdown-menu">
             <li><a class="dropdown-item" href="/set-lang/id">Indonesia</a></li>
@@ -57,6 +71,34 @@
             <li><a class="dropdown-item" href="/set-lang/ar">العربية</a></li>
           </ul>
         </li>
+        {% if admin %}
+        <li class="nav-item dropdown">
+          <a
+            class="nav-link dropdown-toggle text-uppercase"
+            href="#"
+            data-bs-toggle="dropdown"
+            >Admin</a
+          >
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="/admin">Dashboard</a></li>
+            <li>
+              <a class="dropdown-item" href="/admin/carousel">Carousel</a>
+            </li>
+            <li><a class="dropdown-item" href="/admin/pages">Pages</a></li>
+            <li>
+              <a class="dropdown-item" href="/admin/ui-strings">UI Strings</a>
+            </li>
+            <li><a class="dropdown-item" href="/admin/footer">Footer</a></li>
+            {# jika CRUD UI Strings diaktifkan #}
+            <li><hr class="dropdown-divider" /></li>
+            <li><a class="dropdown-item" href="/admin/logout">Logout</a></li>
+          </ul>
+        </li>
+        {% else %}
+        <li class="nav-item">
+          <a class="nav-link" href="/admin/login">Login</a>
+        </li>
+        {% endif %}
       </ul>
     </div>
   </div>
