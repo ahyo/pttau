@@ -165,14 +165,16 @@ async def pages_edit_form(
     trs = {tr.lang: tr for tr in page.translations}
     return templates.TemplateResponse(
         "admin/form_page.html",
-        {
-            "request": request,
-            "mode": "edit",
-            "page": page,
-            "trs": trs,
-            "lang": lang,
-            "i18n": i18n,
-        },
+        common_ctx(
+            request,
+            {
+                "mode": "edit",
+                "page": page,
+                "trs": trs,
+                "lang": lang,
+                "i18n": i18n,
+            },
+        ),
     )
 
 
