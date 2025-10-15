@@ -80,7 +80,9 @@ async def home(request: Request, db: Session = Depends(get_db)):
         ).scalar_one_or_none()
         slides.append({"item": it, "tr": tr})
 
-    return templates.TemplateResponse("site/home.html", {"request": request})
+    return templates.TemplateResponse(
+        "site/home.html", {"request": request, "slides": slides}
+    )
 
 
 # custom form
