@@ -18,4 +18,4 @@ jobs:
           server: ftp.pttau.com
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          server-dir: /company-profile/
+          server-dir: /

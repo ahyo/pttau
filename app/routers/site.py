@@ -98,33 +98,52 @@ async def home(request: Request, db: Session = Depends(get_db)):
 @router.get("/about", response_class=HTMLResponse)
 async def about(request: Request, db: Session = Depends(get_db)):
     lang, i18n = _ctx(request, db)
+    footer_data = get_footer_data(db, lang)
     page = get_page_by_slug(db, "about")  # pastikan slug 'about' ada di tabel page
     if not page:
         raise HTTPException(404)
     tr = get_page_tr(db, page.id, lang)
     return templates.TemplateResponse(
         "site/page.html",
-        common_ctx(request, {"lang": lang, "i18n": i18n, "page": page, "tr": tr}),
+        common_ctx(
+            request,
+            {
+                "lang": lang,
+                "i18n": i18n,
+                "page": page,
+                "tr": tr,
+                "footer_sections": footer_data,
+            },
+        ),
     )
 
 
 @router.get("/contact", response_class=HTMLResponse)
 async def contact(request: Request, db: Session = Depends(get_db)):
     lang, i18n = _ctx(request, db)
-    page = get_page_by_slug(db, "contact")
-    if not page:
-        raise HTTPException(404)
-    tr = get_page_tr(db, page.id, lang)
+    footer_data = get_footer_data(db, lang)
+    # page = get_page_by_slug(db, "contact")
+    # if not page:
+    #     raise HTTPException(404)
+    # tr = get_page_tr(db, page.id, lang)
     return templates.TemplateResponse(
-        "site/page.html",
-        common_ctx(request, {"lang": lang, "i18n": i18n, "page": page, "tr": tr}),
+        "site/contact.html",
+        common_ctx(
+            request,
+            {
+                "lang": lang,
+                "i18n": i18n,
+                "footer_sections": footer_data,
+            },
+        ),
     )
 
 
 # B) Generic: semua slug lain di-handle di sini (/p/{slug})
-@router.get("/p/{slug}", response_class=HTMLResponse)
+@router.get("/{slug}", response_class=HTMLResponse)
 async def page_by_slug(slug: str, request: Request, db: Session = Depends(get_db)):
     lang, i18n = _ctx(request, db)
+    footer_data = get_footer_data(db, lang)
     page = get_page_by_slug(db, slug)
     if not page:
         raise HTTPException(404)
@@ -137,6 +156,6 @@ async def page_by_slug(slug: str, request: Request, db: Session = Depends(get_db
             "i18n": i18n,
             "page": page,
             "tr": tr,
-            "settings": settings,
+            "footer_sections": footer_data,
         },
     )
