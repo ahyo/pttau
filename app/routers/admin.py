@@ -9,7 +9,7 @@ from slugify import slugify
 from app.db import get_db
 from app.deps import verify_password, get_session_admin
 from app.models.page import Page, PageTR
-from app.ui import templates
+from app.ui import templates, common_ctx
 
 router = APIRouter(tags=["admin"])
 
@@ -79,7 +79,7 @@ async def admin_dashboard(request: Request, db=Depends(get_db)):
     if not require_admin(request):
         return RedirectResponse(url="/admin/login?msg=Please%20login", status_code=302)
     return templates.TemplateResponse(
-        "admin/dashboard.html", {"request": request, "lang": lang, "i18n": i18n}
+        "admin/dashboard.html", common_ctx(request, {"lang": lang, "i18n": i18n})
     )
 
 
@@ -92,7 +92,7 @@ async def pages_list(request: Request, db: Session = Depends(get_db), q: str = "
     pages = db.query(Page).order_by(Page.id.desc()).all()
     return templates.TemplateResponse(
         "admin/list_page.html",
-        {"request": request, "pages": pages, "q": q, "lang": lang, "i18n": i18n},
+        common_ctx(request, {"pages": pages, "q": q, "lang": lang, "i18n": i18n}),
     )
 
 
@@ -104,7 +104,7 @@ async def pages_create_form(request: Request, db: Session = Depends(get_db)):
         return RedirectResponse(url="/admin/login?msg=Please%20login", status_code=302)
     return templates.TemplateResponse(
         "admin/form_page.html",
-        {"request": request, "mode": "create", "lang": lang, "i18n": i18n},
+        common_ctx(request, {"mode": "create", "lang": lang, "i18n": i18n}),
     )
 
 
