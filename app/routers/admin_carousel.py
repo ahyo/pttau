@@ -53,7 +53,7 @@ async def list_items(request: Request, db: Session = Depends(get_db)):
     )
     return templates.TemplateResponse(
         "admin/carousel_list.html",
-        {"request": request, "lang": lang, "i18n": i18n, "items": items},
+        common_ctx(request, {"lang": lang, "i18n": i18n, "items": items}),
     )
 
 
@@ -65,7 +65,7 @@ async def create_form(request: Request, db: Session = Depends(get_db)):
         return RedirectResponse(url="/admin/login?msg=Please%20login", status_code=302)
     return templates.TemplateResponse(
         "admin/carousel_form.html",
-        {"request": request, "mode": "create", "lang": lang, "i18n": i18n},
+        common_ctx(request, {"mode": "create", "lang": lang, "i18n": i18n}),
     )
 
 
@@ -130,6 +130,8 @@ async def create_item(
 
 @router.get("/admin/carousel/{item_id}/edit", response_class=HTMLResponse)
 async def edit_form(item_id: int, request: Request, db: Session = Depends(get_db)):
+    lang = getattr(request.state, "lang", settings.DEFAULT_LANG)
+    i18n = DBI18n(db, lang)
     if not require_admin(request):
         return RedirectResponse(url="/admin/login?msg=Please%20login", status_code=302)
     item = db.get(CarouselItem, item_id)
@@ -138,7 +140,7 @@ async def edit_form(item_id: int, request: Request, db: Session = Depends(get_db
     trs = {tr.lang: tr for tr in item.translations}
     return templates.TemplateResponse(
         "admin/carousel_form.html",
-        {"request": request, "mode": "edit", "item": item, "trs": trs},
+        common_ctx(request, {"mode": "edit", "item": item, "trs": trs, "i18n": i18n}),
     )
 
 

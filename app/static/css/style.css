@@ -14,7 +14,7 @@ section:not(.hero-carousel) {
 
 .hero-slide img,
 .hero-slide video {
-    min-height: 100vh;
+    height: 100vh;
     /* penuh layar */
     object-fit: cover;
 }
