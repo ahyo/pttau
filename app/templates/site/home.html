@@ -46,9 +46,13 @@ endblock %} {% block content %}
           class="carousel-caption {{ 'text-start' if loop.index == 1 else '' }}"
         >
           {% if s.tr.title %}
-          <h1 class="display-6 fw-bold">{{ s.tr.title }}</h1>
+          <h1 class="display-6 fw-bold" data-aos="fade-up" data-aos-delay="100">
+            {{ s.tr.title }}
+          </h1>
           {% endif %} {% if s.tr.subtitle %}
-          <p class="lead">{{ s.tr.subtitle }}</p>
+          <p class="lead" data-aos="fade-up" data-aos-delay="200">
+            {{ s.tr.subtitle }}
+          </p>
           {% endif %} {% if s.tr.cta_text and s.tr.cta_url %}
           <a
             href="{{ s.tr.cta_url }}"

@@ -45,7 +45,7 @@
 <script>
   $(document).ready(function () {
     // Inisialisasi editor di semua textarea konten panjang
-    $('textarea[name$="_body"]').trumbowyg({
+    $('textarea[name$="_body"],textarea[name="subtitle"], textarea[name="description"]').trumbowyg({
       btns: [
         ['viewHTML'],
         ['undo', 'redo'],
