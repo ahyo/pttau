@@ -66,3 +66,9 @@ def get_footer_data(db, lang: str):
             )
         footer_data.append({"name": name, "links": link_data})
     return footer_data
+
+
+def active_lang(request):
+    from app.config import settings
+
+    return getattr(request.state, "lang", settings.DEFAULT_LANG)

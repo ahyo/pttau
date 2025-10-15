@@ -1,0 +1,177 @@
+{% extends "layouts/base.html" %} {% block title %}Menu — Admin{% endblock %} {%
+block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h5 m-0">Menu</h1>
+    <a href="/admin/menu/create" class="btn btn-sm btn-outline-secondary d-none"
+      >Create</a
+    >
+  </div>
+
+  <!-- FORM CREATE CEPAT -->
+  <div class="card mb-4 shadow-sm">
+    <div class="card-body">
+      <h2 class="h6 mb-3">Tambah Item</h2>
+      <form method="post" action="/admin/menu/create" class="row g-3">
+        <div class="col-md-3">
+          <label class="form-label">Parent</label>
+          <select name="parent_id" class="form-select">
+            <option value="">(Root)</option>
+            {% for p in parents %}
+            <option value="{{ p.id }}">
+              {{
+              (p.translations|selectattr('lang','equalto','id')|list|first).label
+              if p.translations else ('#' ~ p.id) }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Position</label>
+          <select name="position" class="form-select">
+            <option value="header">header</option>
+            <option value="footer">footer</option>
+            <option value="both">both</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">URL</label>
+          <input
+            name="url"
+            class="form-control"
+            placeholder="/about"
+            required
+          />
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Icon</label>
+          <input
+            name="icon"
+            class="form-control"
+            placeholder="bi bi-airplane"
+          />
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Target</label>
+          <select name="target" class="form-select">
+            <option value="_self">_self</option>
+            <option value="_blank">_blank</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Order</label>
+          <input
+            type="number"
+            name="sort_order"
+            class="form-control"
+            value="0"
+          />
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+          <div class="form-check me-3">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              name="is_external"
+              id="is_external"
+            />
+            <label class="form-check-label" for="is_external">External</label>
+          </div>
+          <div class="form-check me-3">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              name="requires_admin"
+              id="requires_admin"
+            />
+            <label class="form-check-label" for="requires_admin"
+              >Admin-only</label
+            >
+          </div>
+          <div class="form-check">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              name="is_active"
+              id="is_active"
+              checked
+            />
+            <label class="form-check-label" for="is_active">Active</label>
+          </div>
+        </div>
+
+        <!-- label multibahasa -->
+        <div class="col-12"><hr /></div>
+        <div class="col-md-4">
+          <label class="form-label">Label (ID)</label>
+          <input name="id_label" class="form-control" />
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Label (EN)</label>
+          <input name="en_label" class="form-control" />
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Label (AR)</label>
+          <input name="ar_label" class="form-control" dir="rtl" />
+        </div>
+
+        <div class="col-12 mt-2">
+          <button class="btn btn-primary">Tambah</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- TABEL LIST -->
+  <div class="table-responsive">
+    <table class="table table-striped align-middle">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Parent</th>
+          <th>Pos</th>
+          <th>Order</th>
+          <th>Active</th>
+          <th>Admin</th>
+          <th>URL</th>
+          <th>Label (ID/EN/AR)</th>
+          <th>Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for it in items %}
+        <tr>
+          <td>{{ it.id }}</td>
+          <td>{{ it.parent_id or '-' }}</td>
+          <td>{{ it.position }}</td>
+          <td>{{ it.sort_order }}</td>
+          <td>{{ 'Yes' if it.active else 'No' }}</td>
+          <td>{{ 'Yes' if it.requires_admin else 'No' }}</td>
+          <td class="text-truncate" style="max-width: 260px">{{ it.url }}</td>
+          <td>
+            <div><strong>ID:</strong> {{ it.label_id }}</div>
+            <div><strong>EN:</strong> {{ it.label_en }}</div>
+            <div dir="rtl"><strong>AR:</strong> {{ it.label_ar }}</div>
+          </td>
+          <td class="text-nowrap">
+            <a
+              class="btn btn-sm btn-outline-primary"
+              href="/admin/menu/{{ it.id }}/edit"
+              >Edit</a
+            >
+            <form
+              method="post"
+              action="/admin/menu/{{ it.id }}/delete"
+              class="d-inline"
+              onsubmit="return confirm('Delete this item?')"
+            >
+              <button class="btn btn-sm btn-outline-danger">Delete</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

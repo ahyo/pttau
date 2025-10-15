@@ -27,12 +27,8 @@
     </button>
     <div class="collapse navbar-collapse" id="nav">
       <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-        <li class="nav-item">
-          <a class="nav-link text-white text-uppercase" href="/about"
-            >{{ i18n.t('nav_about') }}</a
-          >
-        </li>
-
+        {# helper kecil untuk render anak #} {% macro render_item(item) %} {% if
+        item.children and item.children|length > 0 %}
         <li class="nav-item dropdown">
           <a
             class="nav-link dropdown-toggle text-uppercase"
@@ -40,21 +36,72 @@
             href="#"
             role="button"
             data-bs-toggle="dropdown"
-            >{{ i18n.t('nav_portfolio') }}</a
           >
+            {{ item.label }}
+          </a>
           <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="/portfolio">All</a></li>
-            <li><a class="dropdown-item" href="/portfolio#uav">UAV</a></li>
-            <li>
-              <a class="dropdown-item" href="/portfolio#sim">Simulator</a>
+            {% for c in item.children %} {% if c.children and c.children|length
+            > 0 %}
+            <li class="dropdown-submenu">
+              <a class="dropdown-item dropdown-toggle" href="#"
+                >{{ c.label }}</a
+              >
+              <ul class="dropdown-menu">
+                {% for cc in c.children %}
+                <li>
+                  <a
+                    class="dropdown-item"
+                    href="{{ cc.url }}"
+                    {%
+                    if
+                    cc.target
+                    %}target="{{ cc.target }}"
+                    {%
+                    endif
+                    %}
+                    >{{ cc.label }}</a
+                  >
+                </li>
+                {% endfor %}
+              </ul>
             </li>
+            {% else %}
+            <li>
+              <a
+                class="dropdown-item"
+                href="{{ c.url }}"
+                {%
+                if
+                c.target
+                %}target="{{ c.target }}"
+                {%
+                endif
+                %}
+                >{{ c.label }}</a
+              >
+            </li>
+            {% endif %} {% endfor %}
           </ul>
         </li>
+        {% else %}
         <li class="nav-item">
-          <a class="nav-link text-white text-uppercase" href="/contact"
-            >{{ i18n.t('nav_contact') }}</a
+          <a
+            class="nav-link text-white text-uppercase"
+            href="{{ item.url }}"
+            {%
+            if
+            item.target
+            %}target="{{ item.target }}"
+            {%
+            endif
+            %}
           >
+            {{ item.label }}
+          </a>
         </li>
+        {% endif %} {% endmacro %} {# render semua root items dari DB #} {% for
+        it in header_menu %} {{ render_item(it) }} {% endfor %} {# language
+        switch tetap manual (atau juga bisa dimodelkan sebagai menu di DB) #}
         <li class="nav-item dropdown">
           <a
             class="nav-link dropdown-toggle text-uppercase"
@@ -62,14 +109,16 @@
             href="#"
             role="button"
             data-bs-toggle="dropdown"
-            >{{ i18n.t(lang) }}</a
           >
+            {{ i18n.t(lang) }}
+          </a>
           <ul class="dropdown-menu">
             <li><a class="dropdown-item" href="/set-lang/id">Indonesia</a></li>
             <li><a class="dropdown-item" href="/set-lang/en">English</a></li>
             <li><a class="dropdown-item" href="/set-lang/ar">العربية</a></li>
           </ul>
         </li>
+
         {% if admin %}
         <li class="nav-item dropdown">
           <a
@@ -79,16 +128,16 @@
             >Admin</a
           >
           <ul class="dropdown-menu dropdown-menu-end">
-            <li><a class="dropdown-item" href="/admin">Dashboard</a></li>
+            <li><a class="dropdown-item" href="/">Dashboard</a></li>
+            <li>
+              <a class="dropdown-item" href="/admin/menu">Menu</a>
+            </li>
             <li>
               <a class="dropdown-item" href="/admin/carousel">Carousel</a>
             </li>
             <li><a class="dropdown-item" href="/admin/pages">Pages</a></li>
-            <li>
-              <a class="dropdown-item" href="/admin/ui-strings">UI Strings</a>
-            </li>
+
             <li><a class="dropdown-item" href="/admin/footer">Footer</a></li>
-            {# jika CRUD UI Strings diaktifkan #}
             <li><hr class="dropdown-divider" /></li>
             <li><a class="dropdown-item" href="/admin/logout">Logout</a></li>
           </ul>

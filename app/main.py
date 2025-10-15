@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Request, Response
+from fastapi.middleware import Middleware
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -6,11 +7,19 @@ from starlette.middleware.sessions import SessionMiddleware
 from app.config import settings
 from app.db import get_db
 from app.i18n import pick_lang
-from app.routers import admin_carousel, admin_footer, site, api_public, admin
+from app.routers import (
+    admin_carousel,
+    admin_footer,
+    admin_menu,
+    site,
+    api_public,
+    admin,
+)
 import logging, os
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.services.i18n_db import DBI18n
+from app.middleware.context import ContextInjectorMiddleware
 
 VALID_LANGS = {"id", "en", "ar"}
 
@@ -25,8 +34,16 @@ logging.basicConfig(
 )
 logger = logging.getLogger("ptaero")
 
-app = FastAPI(title=settings.APP_NAME)
-app.add_middleware(SessionMiddleware, secret_key=settings.SECRET_KEY)
+
+app = FastAPI(
+    title=settings.APP_NAME,
+    middleware=[
+        Middleware(SessionMiddleware, secret_key=settings.SECRET_KEY),
+        Middleware(ContextInjectorMiddleware),
+    ],
+)
+
+
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 templates = Jinja2Templates(directory="app/templates")
 templates.env.globals["settings"] = settings
@@ -83,3 +100,4 @@ app.include_router(api_public.router, prefix="/api")
 app.include_router(admin.router, prefix="")
 app.include_router(admin_carousel.router)
 app.include_router(admin_footer.router)
+app.include_router(admin_menu.router)

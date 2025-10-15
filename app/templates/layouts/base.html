@@ -1,3 +1,8 @@
+{% set lang = (request.state.lang if request and request.state and request.state.lang else settings.DEFAULT_LANG) %}
+{% set i18n = (request.state.i18n if request and request.state and request.state.i18n else None) %}
+{% set admin = (request.state.admin if request and request.state else None) %}
+{% set header_menu = (request.state.header_menu if request and request.state else []) %}
+{% set footer_sections = (request.state.footer_data if request and request.state else []) %}
 <!doctype html>
 <html lang="{{ lang }}" {% if lang=='ar' %}dir="rtl"{% endif %}>
   <head>

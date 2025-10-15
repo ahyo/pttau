@@ -10,7 +10,8 @@ from app.services.i18n_db import DBI18n
 from app.db import get_db
 from app.config import settings
 from sqlalchemy.orm import Session
-from app.ui import common_ctx, get_footer_data, templates
+from app.services.menu import get_menu_tree
+from app.ui import active_lang, common_ctx, get_footer_data, templates
 
 router = APIRouter()
 
@@ -59,9 +60,7 @@ def pick_tr(db, item_id, lang):
 
 @router.get("/", response_class=HTMLResponse)
 async def home(request: Request, db: Session = Depends(get_db)):
-    lang = getattr(request.state, "lang", settings.DEFAULT_LANG)
-    i18n = DBI18n(db, lang)
-    footer_data = get_footer_data(db, lang)
+    lang = active_lang
     items = (
         db.execute(
             select(CarouselItem)
@@ -81,69 +80,19 @@ async def home(request: Request, db: Session = Depends(get_db)):
         ).scalar_one_or_none()
         slides.append({"item": it, "tr": tr})
 
-    return templates.TemplateResponse(
-        "site/home.html",
-        common_ctx(
-            request,
-            {  # <-- Request sebagai argumen pertama
-                "i18n": i18n,
-                "slides": slides,
-                "footer_sections": footer_data,
-            },
-        ),
-    )
+    return templates.TemplateResponse("site/home.html", {"request": request})
 
 
-# A) Mapping slug → URL khusus (contoh /about & /contact)
-@router.get("/about", response_class=HTMLResponse)
-async def about(request: Request, db: Session = Depends(get_db)):
-    lang, i18n = _ctx(request, db)
-    footer_data = get_footer_data(db, lang)
-    page = get_page_by_slug(db, "about")  # pastikan slug 'about' ada di tabel page
-    if not page:
-        raise HTTPException(404)
-    tr = get_page_tr(db, page.id, lang)
-    return templates.TemplateResponse(
-        "site/page.html",
-        common_ctx(
-            request,
-            {
-                "lang": lang,
-                "i18n": i18n,
-                "page": page,
-                "tr": tr,
-                "footer_sections": footer_data,
-            },
-        ),
-    )
-
-
+# custom form
 @router.get("/contact", response_class=HTMLResponse)
 async def contact(request: Request, db: Session = Depends(get_db)):
-    lang, i18n = _ctx(request, db)
-    footer_data = get_footer_data(db, lang)
-    # page = get_page_by_slug(db, "contact")
-    # if not page:
-    #     raise HTTPException(404)
-    # tr = get_page_tr(db, page.id, lang)
-    return templates.TemplateResponse(
-        "site/contact.html",
-        common_ctx(
-            request,
-            {
-                "lang": lang,
-                "i18n": i18n,
-                "footer_sections": footer_data,
-            },
-        ),
-    )
+    return templates.TemplateResponse("site/contact.html", {"request": request})
 
 
 # B) Generic: semua slug lain di-handle di sini (/p/{slug})
 @router.get("/{slug}", response_class=HTMLResponse)
 async def page_by_slug(slug: str, request: Request, db: Session = Depends(get_db)):
     lang, i18n = _ctx(request, db)
-    footer_data = get_footer_data(db, lang)
     page = get_page_by_slug(db, slug)
     if not page:
         raise HTTPException(404)
@@ -157,7 +106,6 @@ async def page_by_slug(slug: str, request: Request, db: Session = Depends(get_db
                 "i18n": i18n,
                 "page": page,
                 "tr": tr,
-                "footer_sections": footer_data,
             },
         ),
     )

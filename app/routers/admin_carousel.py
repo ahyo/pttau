@@ -38,9 +38,6 @@ def save_upload(file: UploadFile | None) -> str | None:
 
 @router.get("/admin/carousel", response_class=HTMLResponse)
 async def list_items(request: Request, db: Session = Depends(get_db)):
-    lang = getattr(request.state, "lang", settings.DEFAULT_LANG)
-    i18n = DBI18n(db, lang)
-    footer_data = get_footer_data(db, lang)
     if not require_admin(request):
         return RedirectResponse(url="/admin/login?msg=Please%20login", status_code=302)
     items = (
@@ -54,15 +51,10 @@ async def list_items(request: Request, db: Session = Depends(get_db)):
     )
     return templates.TemplateResponse(
         "admin/carousel_list.html",
-        common_ctx(
-            request,
-            {
-                "lang": lang,
-                "i18n": i18n,
-                "items": items,
-                "footer_sections": footer_data,
-            },
-        ),
+        {
+            "request": request,
+            "items": items,
+        },
     )
 
 
