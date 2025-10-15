@@ -9,7 +9,7 @@ from slugify import slugify
 from app.db import get_db
 from app.deps import verify_password, get_session_admin
 from app.models.page import Page, PageTR
-from app.ui import templates, common_ctx
+from app.ui import get_footer_data, templates, common_ctx
 
 router = APIRouter(tags=["admin"])
 
@@ -87,12 +87,22 @@ async def admin_dashboard(request: Request, db=Depends(get_db)):
 async def pages_list(request: Request, db: Session = Depends(get_db), q: str = ""):
     lang = getattr(request.state, "lang", "id")
     i18n = DBI18n(db, lang)
+    footer_data = get_footer_data(db, lang)
     if not require_admin(request):
         return RedirectResponse(url="/admin/login?msg=Please%20login", status_code=302)
     pages = db.query(Page).order_by(Page.id.desc()).all()
     return templates.TemplateResponse(
         "admin/list_page.html",
-        common_ctx(request, {"pages": pages, "q": q, "lang": lang, "i18n": i18n}),
+        common_ctx(
+            request,
+            {
+                "pages": pages,
+                "q": q,
+                "lang": lang,
+                "i18n": i18n,
+                "footer_sections": footer_data,
+            },
+        ),
     )
 
 
@@ -100,11 +110,20 @@ async def pages_list(request: Request, db: Session = Depends(get_db), q: str = "
 async def pages_create_form(request: Request, db: Session = Depends(get_db)):
     lang = getattr(request.state, "lang", "id")
     i18n = DBI18n(db, lang)
+    footer_data = get_footer_data(db, lang)
     if not require_admin(request):
         return RedirectResponse(url="/admin/login?msg=Please%20login", status_code=302)
     return templates.TemplateResponse(
         "admin/form_page.html",
-        common_ctx(request, {"mode": "create", "lang": lang, "i18n": i18n}),
+        common_ctx(
+            request,
+            {
+                "mode": "create",
+                "lang": lang,
+                "i18n": i18n,
+                "footer_sections": footer_data,
+            },
+        ),
     )
 
 
@@ -157,6 +176,7 @@ async def pages_edit_form(
 ):
     lang = getattr(request.state, "lang", "id")
     i18n = DBI18n(db, lang)
+    footer_data = get_footer_data(db, lang)
     if not require_admin(request):
         return RedirectResponse(url="/admin/login?msg=Please%20login", status_code=302)
     page = db.get(Page, page_id)
@@ -173,6 +193,7 @@ async def pages_edit_form(
                 "trs": trs,
                 "lang": lang,
                 "i18n": i18n,
+                "footer_sections": footer_data,
             },
         ),
     )

@@ -181,3 +181,20 @@ html[dir="rtl"] .bullet {
 }
 
 
+.trumbowyg-box,
+.trumbowyg-editor {
+    border-radius: 0.5rem;
+    border-color: #dee2e6;
+    font-family: 'Poppins', sans-serif;
+    min-height: 200px;
+}
+
+.trumbowyg-button-pane {
+    border-radius: 0.5rem 0.5rem 0 0;
+}
+
+.trumbowyg-editor {
+    background: #fff;
+    color: #212529;
+    line-height: 1.6;
+}

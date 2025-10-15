@@ -11,7 +11,7 @@ from app.deps import get_session_admin
 from app.models.carousel import CarouselItem, CarouselItemTR
 
 from app.services.i18n_db import DBI18n
-from app.ui import common_ctx, templates
+from app.ui import common_ctx, get_footer_data, templates
 
 router = APIRouter(tags=["admin"])
 
@@ -40,6 +40,7 @@ def save_upload(file: UploadFile | None) -> str | None:
 async def list_items(request: Request, db: Session = Depends(get_db)):
     lang = getattr(request.state, "lang", settings.DEFAULT_LANG)
     i18n = DBI18n(db, lang)
+    footer_data = get_footer_data(db, lang)
     if not require_admin(request):
         return RedirectResponse(url="/admin/login?msg=Please%20login", status_code=302)
     items = (
@@ -53,7 +54,15 @@ async def list_items(request: Request, db: Session = Depends(get_db)):
     )
     return templates.TemplateResponse(
         "admin/carousel_list.html",
-        common_ctx(request, {"lang": lang, "i18n": i18n, "items": items}),
+        common_ctx(
+            request,
+            {
+                "lang": lang,
+                "i18n": i18n,
+                "items": items,
+                "footer_sections": footer_data,
+            },
+        ),
     )
 
 
@@ -61,11 +70,20 @@ async def list_items(request: Request, db: Session = Depends(get_db)):
 async def create_form(request: Request, db: Session = Depends(get_db)):
     lang = getattr(request.state, "lang", settings.DEFAULT_LANG)
     i18n = DBI18n(db, lang)
+    footer_data = get_footer_data(db, lang)
     if not require_admin(request):
         return RedirectResponse(url="/admin/login?msg=Please%20login", status_code=302)
     return templates.TemplateResponse(
         "admin/carousel_form.html",
-        common_ctx(request, {"mode": "create", "lang": lang, "i18n": i18n}),
+        common_ctx(
+            request,
+            {
+                "mode": "create",
+                "lang": lang,
+                "i18n": i18n,
+                "footer_sections": footer_data,
+            },
+        ),
     )
 
 
@@ -132,6 +150,7 @@ async def create_item(
 async def edit_form(item_id: int, request: Request, db: Session = Depends(get_db)):
     lang = getattr(request.state, "lang", settings.DEFAULT_LANG)
     i18n = DBI18n(db, lang)
+    footer_data = get_footer_data(db, lang)
     if not require_admin(request):
         return RedirectResponse(url="/admin/login?msg=Please%20login", status_code=302)
     item = db.get(CarouselItem, item_id)
@@ -140,7 +159,16 @@ async def edit_form(item_id: int, request: Request, db: Session = Depends(get_db
     trs = {tr.lang: tr for tr in item.translations}
     return templates.TemplateResponse(
         "admin/carousel_form.html",
-        common_ctx(request, {"mode": "edit", "item": item, "trs": trs, "i18n": i18n}),
+        common_ctx(
+            request,
+            {
+                "mode": "edit",
+                "item": item,
+                "trs": trs,
+                "i18n": i18n,
+                "footer_sections": footer_data,
+            },
+        ),
     )
 
 
