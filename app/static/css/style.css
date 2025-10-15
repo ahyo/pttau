@@ -6,6 +6,7 @@ body {
 section:not(.hero-carousel) {
     scroll-margin-top: 80px;
 }
+
 .hero-carousel {
     position: relative;
     margin-top: -70px;
@@ -38,7 +39,7 @@ section:not(.hero-carousel) {
 }
 
 .carousel-caption {
-    z-index: 2;
+    z-index: 10000;
     bottom: 12%;
 }
 

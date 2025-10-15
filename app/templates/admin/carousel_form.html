@@ -52,29 +52,33 @@
         <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-ar" role="tab">العربية (AR)</a></li>
       </ul>
       <div class="tab-content border border-top-0 p-3 rounded-bottom">
-        {% set tr_id = (trs['id'] if trs and 'id' in trs else None) %}
-        {% set tr_en = (trs['en'] if trs and 'en' in trs else None) %}
-        {% set tr_ar = (trs['ar'] if trs and 'ar' in trs else None) %}
+  {% set tr_id = (trs['id'] if trs and 'id' in trs else None) %}
+  {% set tr_en = (trs['en'] if trs and 'en' in trs else None) %}
+  {% set tr_ar = (trs['ar'] if trs and 'ar' in trs else None) %}
 
-        {% for code,tr,label in [('id',tr_id,'ID'),('en',tr_en,'EN'),('ar',tr_ar,'AR')] %}
-        <div class="tab-pane fade {{ 'show active' if loop.index==1 else '' }}" id="tab-{{code}}" role="tabpanel" {% if code=='ar' %}dir="rtl"{% endif %}>
-          <div class="mb-2"><label class="form-label">Title ({{label}})</label>
-            <input name="title" class="form-control" value="{{ tr.title if tr else '' }}">
-          </div>
-          <div class="mb-2"><label class="form-label">Subtitle ({{label}})</label>
-            <textarea name="subtitle" class="form-control" rows="2">{{ tr.subtitle if tr else '' }}</textarea>
-          </div>
-          <div class="row">
-            <div class="col-md-6 mb-2"><label class="form-label">CTA Text ({{label}})</label>
-              <input name="cta_text" class="form-control" value="{{ tr.cta_text if tr else '' }}">
-            </div>
-            <div class="col-md-6 mb-2"><label class="form-label">CTA URL ({{label}})</label>
-              <input name="cta_url" class="form-control" value="{{ tr.cta_url if tr else '' }}" placeholder="/portfolio">
-            </div>
-          </div>
-        </div>
-        {% endfor %}
+  {% for code,tr,label in [('id',tr_id,'ID'),('en',tr_en,'EN'),('ar',tr_ar,'AR')] %}
+  <div class="tab-pane fade {{ 'show active' if loop.index==1 else '' }}" id="tab-{{code}}" role="tabpanel" {% if code=='ar' %}dir="rtl"{% endif %}>
+    <div class="mb-2">
+      <label class="form-label">Title ({{label}})</label>
+      <input name="{{code}}_title" class="form-control" value="{{ tr.title if tr else '' }}">
+    </div>
+    <div class="mb-2">
+      <label class="form-label">Subtitle ({{label}})</label>
+      <textarea name="{{code}}_subtitle" class="form-control" rows="2">{{ tr.subtitle if tr else '' }}</textarea>
+    </div>
+    <div class="row">
+      <div class="col-md-6 mb-2">
+        <label class="form-label">CTA Text ({{label}})</label>
+        <input name="{{code}}_cta_text" class="form-control" value="{{ tr.cta_text if tr else '' }}">
       </div>
+      <div class="col-md-6 mb-2">
+        <label class="form-label">CTA URL ({{label}})</label>
+        <input name="{{code}}_cta_url" class="form-control" value="{{ tr.cta_url if tr else '' }}" placeholder="/portfolio">
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
 
       <div class="mt-3 d-flex gap-2">
         <button class="btn btn-primary">{{ 'Create' if mode=='create' else 'Save Changes' }}</button>

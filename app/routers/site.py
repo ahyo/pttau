@@ -60,7 +60,7 @@ def pick_tr(db, item_id, lang):
 
 @router.get("/", response_class=HTMLResponse)
 async def home(request: Request, db: Session = Depends(get_db)):
-    lang = active_lang
+    lang = active_lang(request)
     items = (
         db.execute(
             select(CarouselItem)

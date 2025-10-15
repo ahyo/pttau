@@ -60,22 +60,15 @@ async def list_items(request: Request, db: Session = Depends(get_db)):
 
 @router.get("/admin/carousel/create", response_class=HTMLResponse)
 async def create_form(request: Request, db: Session = Depends(get_db)):
-    lang = getattr(request.state, "lang", settings.DEFAULT_LANG)
-    i18n = DBI18n(db, lang)
-    footer_data = get_footer_data(db, lang)
+
     if not require_admin(request):
         return RedirectResponse(url="/admin/login?msg=Please%20login", status_code=302)
     return templates.TemplateResponse(
         "admin/carousel_form.html",
-        common_ctx(
-            request,
-            {
-                "mode": "create",
-                "lang": lang,
-                "i18n": i18n,
-                "footer_sections": footer_data,
-            },
-        ),
+        {
+            "request": request,
+            "mode": "create",
+        },
     )
 
 
@@ -140,28 +133,28 @@ async def create_item(
 
 @router.get("/admin/carousel/{item_id}/edit", response_class=HTMLResponse)
 async def edit_form(item_id: int, request: Request, db: Session = Depends(get_db)):
-    lang = getattr(request.state, "lang", settings.DEFAULT_LANG)
-    i18n = DBI18n(db, lang)
-    footer_data = get_footer_data(db, lang)
     if not require_admin(request):
-        return RedirectResponse(url="/admin/login?msg=Please%20login", status_code=302)
+        return RedirectResponse("/admin/login?msg=Please%20login", 302)
+
     item = db.get(CarouselItem, item_id)
     if not item:
-        return RedirectResponse(url="/admin/carousel?msg=Not%20found", status_code=302)
-    trs = {tr.lang: tr for tr in item.translations}
+        return RedirectResponse("/admin/carousel?msg=Not%20found", 302)
+
+    # Map translasi aman
+    trs = {tr.lang: tr for tr in (item.translations or [])}
+    # print(trs["id"])
     return templates.TemplateResponse(
         "admin/carousel_form.html",
-        common_ctx(
-            request,
-            {
-                "mode": "edit",
-                "item": item,
-                "trs": trs,
-                "i18n": i18n,
-                "footer_sections": footer_data,
-            },
-        ),
+        {
+            "request": request,
+            "mode": "edit",
+            "item": item,
+            "trs": trs,
+        },
     )
+
+
+from typing import Optional
 
 
 @router.post("/admin/carousel/{item_id}/edit")
@@ -172,58 +165,63 @@ async def edit_item(
     media_type: str = Form("image"),
     sort_order: int = Form(0),
     is_active: str = Form("off"),
-    # upload opsional
     media_file: UploadFile = File(None),
     poster_file: UploadFile = File(None),
-    # TR
-    id_title: str = Form(""),
-    id_subtitle: str = Form(""),
-    id_cta_text: str = Form(""),
-    id_cta_url: str = Form(""),
-    en_title: str = Form(""),
-    en_subtitle: str = Form(""),
-    en_cta_text: str = Form(""),
-    en_cta_url: str = Form(""),
-    ar_title: str = Form(""),
-    ar_subtitle: str = Form(""),
-    ar_cta_text: str = Form(""),
-    ar_cta_url: str = Form(""),
+    # --- jadikan opsional (None) ---
+    id_title: Optional[str] = Form(None),
+    id_subtitle: Optional[str] = Form(None),
+    id_cta_text: Optional[str] = Form(None),
+    id_cta_url: Optional[str] = Form(None),
+    en_title: Optional[str] = Form(None),
+    en_subtitle: Optional[str] = Form(None),
+    en_cta_text: Optional[str] = Form(None),
+    en_cta_url: Optional[str] = Form(None),
+    ar_title: Optional[str] = Form(None),
+    ar_subtitle: Optional[str] = Form(None),
+    ar_cta_text: Optional[str] = Form(None),
+    ar_cta_url: Optional[str] = Form(None),
 ):
     if not require_admin(request):
-        return RedirectResponse(url="/admin/login?msg=Please%20login", status_code=302)
+        return RedirectResponse("/admin/login?msg=Please%20login", 302)
+
     item = db.get(CarouselItem, item_id)
     if not item:
-        return RedirectResponse(url="/admin/carousel?msg=Not%20found", status_code=302)
+        return RedirectResponse("/admin/carousel?msg=Not%20found", 302)
 
     item.media_type = media_type
-    new_media = save_upload(media_file)
-    if new_media:
+    if new_media := save_upload(media_file):
         item.media_path = new_media
-    new_poster = save_upload(poster_file)
-    if new_poster:
+    if new_poster := save_upload(poster_file):
         item.poster_path = new_poster
     item.is_active = is_active == "on"
     item.sort_order = sort_order
 
+    def keep(old: Optional[str], new: Optional[str]) -> Optional[str]:
+        """Pakai nilai baru hanya jika non-empty setelah strip; kalau None/empty → keep old."""
+        if new is None:
+            return old
+        val = new.strip()
+        return val if val != "" else old
+
     def upsert(lang, title, subtitle, cta_text, cta_url):
         tr = next((t for t in item.translations if t.lang == lang), None)
         if tr:
-            tr.title, tr.subtitle, tr.cta_text, tr.cta_url = (
-                title,
-                subtitle,
-                cta_text,
-                cta_url,
-            )
+            tr.title = keep(tr.title, title)
+            tr.subtitle = keep(tr.subtitle, subtitle)
+            tr.cta_text = keep(tr.cta_text, cta_text)
+            tr.cta_url = keep(tr.cta_url, cta_url)
         else:
-            if any([title, subtitle, cta_text, cta_url]):
+            # buat baru hanya jika ada minimal satu field non-empty
+            vals = [title, subtitle, cta_text, cta_url]
+            if any(v and v.strip() for v in vals):
                 db.add(
                     CarouselItemTR(
                         item_id=item.id,
                         lang=lang,
-                        title=title,
-                        subtitle=subtitle,
-                        cta_text=cta_text,
-                        cta_url=cta_url,
+                        title=title.strip() if title else None,
+                        subtitle=subtitle.strip() if subtitle else None,
+                        cta_text=cta_text.strip() if cta_text else None,
+                        cta_url=cta_url.strip() if cta_url else None,
                     )
                 )
 
@@ -232,7 +230,7 @@ async def edit_item(
     upsert("ar", ar_title, ar_subtitle, ar_cta_text, ar_cta_url)
 
     db.commit()
-    return RedirectResponse(url="/admin/carousel", status_code=302)
+    return RedirectResponse("/admin/carousel?msg=updated", 302)
 
 
 @router.post("/admin/carousel/{item_id}/delete")
