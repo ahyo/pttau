@@ -179,3 +179,11 @@ html[dir="rtl"] .bullet {
     font-size: 1.1rem;
     margin-top: 0.15rem;
 }
+
+.teks-kecil{
+    font-size: 2px!important;
+}
+
+#my-logo{
+    margin-left: -100px;
+}

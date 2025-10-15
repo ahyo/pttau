@@ -6,14 +6,13 @@
   "
 >
   <div class="container">
-    <a
-      class="text-white text-uppercase navbar-brand d-flex align-items-center gap-2"
-      href="/"
-    >
-      <img src="/static/img/logo.png" height="28" alt="Logo" />
-      <span class="fw-bold"
-        >{{ settings.APP_NAME if settings else 'Company' }}</span
-      >
+    <a class="navbar-brand align-items-center gap-2" id="my-logo" href="/">
+      <div class="text-center">
+        <img src="/static/img/logo.png" height="28" alt="Logo" />
+        <div class="text-white" style="font-size: xx-small">
+          {{ settings.APP_NAME if settings else 'Company' }}
+        </div>
+      </div>
     </a>
     <button
       class="navbar-toggler"
