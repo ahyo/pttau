@@ -150,12 +150,14 @@ async def page_by_slug(slug: str, request: Request, db: Session = Depends(get_db
     tr = get_page_tr(db, page.id, lang)
     return templates.TemplateResponse(
         "site/page.html",
-        {
-            "request": request,
-            "lang": lang,
-            "i18n": i18n,
-            "page": page,
-            "tr": tr,
-            "footer_sections": footer_data,
-        },
+        common_ctx(
+            request,
+            {
+                "lang": lang,
+                "i18n": i18n,
+                "page": page,
+                "tr": tr,
+                "footer_sections": footer_data,
+            },
+        ),
     )
