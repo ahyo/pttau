@@ -157,11 +157,13 @@ endblock %} {% block content %}
     <div class="row g-4">
       <!-- Capabilities -->
       <div class="col-lg-6" data-aos="fade-right">
-        {{ kapabilitas_tr | safe}}
+        {{ kapabilitas_tr.body | safe}}
       </div>
 
       <!-- Highlights -->
-      <div class="col-lg-6" data-aos="fade-left">{{ highlight_tr | safe}}</div>
+      <div class="col-lg-6" data-aos="fade-left">
+        {{ highlight_tr.body | safe}}
+      </div>
     </div>
   </div>
 </section>
