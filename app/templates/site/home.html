@@ -50,9 +50,9 @@ endblock %} {% block content %}
             {{ s.tr.title }}
           </h1>
           {% endif %} {% if s.tr.subtitle %}
-          <p class="lead" data-aos="fade-up" data-aos-delay="200">
+          <div class="lead" data-aos="fade-up" data-aos-delay="200">
             {{ s.tr.subtitle }}
-          </p>
+          </div>
           {% endif %} {% if s.tr.cta_text and s.tr.cta_url %}
           <a
             href="{{ s.tr.cta_url }}"
