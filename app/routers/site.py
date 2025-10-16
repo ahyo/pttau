@@ -1,10 +1,10 @@
 from fastapi import APIRouter, HTTPException, Request, Depends
 from fastapi.responses import HTMLResponse, PlainTextResponse
 from fastapi.templating import Jinja2Templates
-from sqlalchemy import select
+from sqlalchemy import case, select
 
 from app.models.carousel import CarouselItem, CarouselItemTR
-from app.models.page import Page
+from app.models.page import Page, PageTR
 from app.services.content import get_page_by_slug, get_page_tr
 from app.services.i18n_db import DBI18n
 from app.db import get_db
@@ -61,6 +61,49 @@ def pick_tr(db, item_id, lang):
 @router.get("/", response_class=HTMLResponse)
 async def home(request: Request, db: Session = Depends(get_db)):
     lang = active_lang(request)
+
+    highlight = db.execute(
+        select(Page).where(Page.slug == "section-highlight")
+    ).scalar_one_or_none()
+
+    highlight_tr = None
+    if highlight:
+        # 2) Ambil terjemahan dengan prioritas: lang aktif -> en -> id
+        priority = case(
+            (PageTR.lang == lang, 0),
+            (PageTR.lang == "en", 1),
+            (PageTR.lang == "id", 2),
+            else_=3,
+        )
+        highlight_tr = db.execute(
+            select(PageTR)
+            .where(PageTR.page_id == highlight.id, PageTR.lang.in_([lang, "en", "id"]))
+            .order_by(priority)
+            .limit(1)
+        ).scalar_one_or_none()
+
+    kapabilitas = db.execute(
+        select(Page).where(Page.slug == "section-kapabilitas")
+    ).scalar_one_or_none()
+
+    kapabilitas_tr = None
+    if kapabilitas:
+        # 2) Ambil terjemahan dengan prioritas: lang aktif -> en -> id
+        priority = case(
+            (PageTR.lang == lang, 0),
+            (PageTR.lang == "en", 1),
+            (PageTR.lang == "id", 2),
+            else_=3,
+        )
+        kapabilitas_tr = db.execute(
+            select(PageTR)
+            .where(
+                PageTR.page_id == kapabilitas.id, PageTR.lang.in_([lang, "en", "id"])
+            )
+            .order_by(priority)
+            .limit(1)
+        ).scalar_one_or_none()
+
     items = (
         db.execute(
             select(CarouselItem)
@@ -81,7 +124,13 @@ async def home(request: Request, db: Session = Depends(get_db)):
         slides.append({"item": it, "tr": tr})
 
     return templates.TemplateResponse(
-        "site/home.html", {"request": request, "slides": slides}
+        "site/home.html",
+        {
+            "request": request,
+            "slides": slides,
+            "highlight_tr": highlight_tr,
+            "kapabilitas_tr": kapabilitas_tr,
+        },
     )
 
 

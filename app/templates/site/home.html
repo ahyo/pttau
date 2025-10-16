@@ -157,100 +157,11 @@ endblock %} {% block content %}
     <div class="row g-4">
       <!-- Capabilities -->
       <div class="col-lg-6" data-aos="fade-right">
-        <div class="card feature-card h-100">
-          <div class="card-body p-4">
-            <div class="d-flex align-items-center mb-3">
-              <i class="bi bi-cpu fs-3 me-2 text-brand"></i>
-              <h3 class="h5 m-0">Capabilities</h3>
-            </div>
-            <div class="row row-cols-1 row-cols-sm-2 g-2">
-              <div class="col" data-aos="zoom-in" data-aos-delay="50">
-                <div class="bullet">
-                  <i class="bi bi-check2"></i> Mission System Integration
-                </div>
-              </div>
-              <div class="col" data-aos="zoom-in" data-aos-delay="100">
-                <div class="bullet">
-                  <i class="bi bi-check2"></i> Simulator Technology
-                </div>
-              </div>
-              <div class="col" data-aos="zoom-in" data-aos-delay="150">
-                <div class="bullet">
-                  <i class="bi bi-check2"></i> UAV / Rockets / Missiles /
-                  Torpedoes
-                </div>
-              </div>
-              <div class="col" data-aos="zoom-in" data-aos-delay="200">
-                <div class="bullet">
-                  <i class="bi bi-check2"></i> Airport Design
-                </div>
-              </div>
-              <div class="col" data-aos="zoom-in" data-aos-delay="250">
-                <div class="bullet">
-                  <i class="bi bi-check2"></i> Software &amp; IT Consulting
-                </div>
-              </div>
-              <div class="col" data-aos="zoom-in" data-aos-delay="300">
-                <div class="bullet">
-                  <i class="bi bi-check2"></i> Communication Technology
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="card-footer bg-transparent px-4 pb-4">
-            <a class="btn btn-sm btn-outline-brand" href="/p/about"
-              >Learn More</a
-            >
-          </div>
-        </div>
+        {{ kapabilitas_tr | safe}}
       </div>
 
       <!-- Highlights -->
-      <div class="col-lg-6" data-aos="fade-left">
-        <div class="card feature-card h-100">
-          <div class="card-body p-4">
-            <div class="d-flex align-items-center mb-3">
-              <i class="bi bi-stars fs-3 me-2 text-brand"></i>
-              <h3 class="h5 m-0">Highlights</h3>
-            </div>
-            <div class="row row-cols-2 g-3">
-              <div class="col">
-                <a class="tile" href="/portfolio#uav" aria-label="UAV">
-                  <i class="bi bi-airplane-fill"></i>
-                  <span>UAV</span>
-                </a>
-              </div>
-              <div class="col">
-                <a class="tile" href="/portfolio#kfx-ifx" aria-label="KFX/IFX">
-                  <i class="bi bi-shield-lock-fill"></i>
-                  <span>KFX/IFX</span>
-                </a>
-              </div>
-              <div class="col">
-                <a
-                  class="tile"
-                  href="/portfolio#weapon"
-                  aria-label="Weapon System"
-                >
-                  <i class="bi bi-bullseye"></i>
-                  <span>Weapon System</span>
-                </a>
-              </div>
-              <div class="col">
-                <a class="tile" href="/portfolio#sim" aria-label="Simulator">
-                  <i class="bi bi-joystick"></i>
-                  <span>Simulator</span>
-                </a>
-              </div>
-            </div>
-          </div>
-          <div class="card-footer bg-transparent px-4 pb-4">
-            <a class="btn btn-sm btn-outline-brand" href="/portfolio"
-              >View Portfolio</a
-            >
-          </div>
-        </div>
-      </div>
+      <div class="col-lg-6" data-aos="fade-left">{{ highlight_tr | safe}}</div>
     </div>
   </div>
 </section>
