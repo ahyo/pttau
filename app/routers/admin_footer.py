@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Request, Depends, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 from sqlalchemy import select
 from app.db import get_db
 from app.models.footer import FooterSection, FooterSectionTR, FooterLink, FooterLinkTR
@@ -17,22 +17,36 @@ def require_admin(request: Request):
     return request.session.get("admin")
 
 
-# List sections
 @router.get("/admin/footer", response_class=HTMLResponse)
-async def footer_sections(request: Request, db: Session = Depends(get_db)):
-    lang = getattr(request.state, "lang", settings.DEFAULT_LANG)
-    i18n = DBI18n(db, lang)
-    footer_data = get_footer_data(db, lang)
+def footer_sections_list(request: Request, db: Session = Depends(get_db)):
     if not require_admin(request):
         return RedirectResponse("/admin/login", 302)
+
     sections = (
-        db.execute(select(FooterSection).order_by(FooterSection.sort_order))
+        db.execute(
+            select(FooterSection)
+            .options(selectinload(FooterSection.translations))  # <- muat translasi
+            .order_by(FooterSection.sort_order.asc(), FooterSection.id.asc())
+        )
         .scalars()
         .all()
     )
+
+    rows = []
+    for s in sections:
+        names = {tr.lang: tr.name for tr in (s.translations or [])}
+        rows.append(
+            {
+                "id": s.id,
+                "sort_order": s.sort_order,
+                "name_id": names.get("id"),
+                "name_en": names.get("en"),
+                "name_ar": names.get("ar"),
+            }
+        )
+
     return templates.TemplateResponse(
-        "admin/footer_sections.html",
-        common_ctx(request, {"sections": sections, "i18n": i18n}),
+        "admin/footer_sections.html", {"request": request, "sections": rows}
     )
 
 

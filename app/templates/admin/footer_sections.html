@@ -1,50 +1,120 @@
-{% extends "layouts/base.html" %} {% block title %}Footer Sections{% endblock %}
-{% block content %}
+{% extends "layouts/base.html" %} {% block title %}Footer Sections — Admin{%
+endblock %} {% block content %}
+
 <div class="container py-4">
-  <h1 class="h5 mb-3">Footer Sections</h1>
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h5 mb-0">Footer Sections</h1>
+    <a href="/admin/footer" class="btn btn-sm btn-outline-secondary">
+      <i class="bi bi-arrow-clockwise"></i> Refresh
+    </a>
+  </div>
+
+  <!-- FORM: Create new section -->
   <form
     method="post"
     action="/admin/footer/section/create"
-    class="row g-2 mb-3"
+    class="row g-2 mb-4 align-items-end"
   >
     <div class="col-md-2">
+      <label class="form-label small text-muted">Sort Order</label>
       <input type="number" name="sort_order" class="form-control" value="0" />
     </div>
     <div class="col-md-2">
-      <input name="id_name" class="form-control" placeholder="Name (ID)" />
+      <label class="form-label small text-muted">Name (ID)</label>
+      <input
+        name="id_name"
+        class="form-control"
+        placeholder="Contoh: Tentang Kami"
+      />
     </div>
     <div class="col-md-2">
-      <input name="en_name" class="form-control" placeholder="Name (EN)" />
+      <label class="form-label small text-muted">Name (EN)</label>
+      <input
+        name="en_name"
+        class="form-control"
+        placeholder="Example: About Us"
+      />
     </div>
     <div class="col-md-2">
-      <input name="ar_name" class="form-control" placeholder="Name (AR)" />
+      <label class="form-label small text-muted">Name (AR)</label>
+      <input
+        name="ar_name"
+        class="form-control"
+        dir="rtl"
+        placeholder="مثال: من نحن"
+      />
     </div>
-    <div class="col-md-2"><button class="btn btn-primary">Add</button></div>
+    <div class="col-md-2">
+      <button class="btn btn-primary w-100">
+        <i class="bi bi-plus-circle"></i> Add Section
+      </button>
+    </div>
   </form>
 
-  <table class="table table-striped">
-    <thead>
-      <tr>
-        <th>#</th>
-        <th>Order</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for s in sections %}
-      <tr>
-        <td>{{ s.id }}</td>
-        <td>{{ s.sort_order }}</td>
-        <td>
-          <a
-            href="/admin/footer/{{s.id}}/links"
-            class="btn btn-sm btn-outline-primary"
-            >Links</a
-          >
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  <!-- TABLE: List of sections -->
+  <div class="table-responsive">
+    <table class="table table-bordered align-middle table-hover">
+      <thead class="table-light">
+        <tr>
+          <th style="width: 50px">#</th>
+          <th style="width: 80px">Order</th>
+          <th>Name (ID)</th>
+          <th>Name (EN)</th>
+          <th>Name (AR)</th>
+          <th style="width: 220px">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in sections %}
+        <tr>
+          <td class="text-center">{{ s.id }}</td>
+          <td class="text-center">{{ s.sort_order }}</td>
+          <td>{{ s.name_id or '-' }}</td>
+          <td>{{ s.name_en or '-' }}</td>
+          <td dir="rtl">{{ s.name_ar or '-' }}</td>
+          <td class="text-center">
+            <div class="btn-group btn-group-sm gap-2" role="group">
+              <a
+                href="/admin/footer/{{s.id}}/links"
+                class="btn btn-outline-primary"
+                title="Manage Links"
+              >
+                <i class="bi bi-link-45deg"></i>
+              </a>
+              <a
+                href="/admin/footer/section/{{s.id}}/edit"
+                class="btn btn-outline-secondary"
+                title="Edit Section"
+              >
+                <i class="bi bi-pencil-square"></i>
+              </a>
+              <form
+                method="post"
+                action="/admin/footer/section/{{s.id}}/delete"
+                onsubmit="return confirm('Delete this section?')"
+                style="display: inline"
+              >
+                <button
+                  type="submit"
+                  class="btn btn-outline-danger"
+                  title="Delete"
+                >
+                  <i class="bi bi-trash"></i>
+                </button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="6" class="text-center text-muted py-4">
+            No sections yet.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </div>
+
 {% endblock %}
