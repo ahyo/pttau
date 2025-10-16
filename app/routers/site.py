@@ -58,51 +58,34 @@ def pick_tr(db, item_id, lang):
     return None
 
 
+def get_slug_page(db: Session, slug: str, lang):
+    section = db.execute(select(Page).where(Page.slug == slug)).scalar_one_or_none()
+    detail = None
+    if section:
+        # 2) Ambil terjemahan dengan prioritas: lang aktif -> en -> id
+        priority = case(
+            (PageTR.lang == lang, 0),
+            (PageTR.lang == "en", 1),
+            (PageTR.lang == "id", 2),
+            else_=3,
+        )
+        detail = db.execute(
+            select(PageTR)
+            .where(PageTR.page_id == section.id, PageTR.lang.in_([lang, "en", "id"]))
+            .order_by(priority)
+            .limit(1)
+        ).scalar_one_or_none()
+    return detail
+
+
 @router.get("/", response_class=HTMLResponse)
 async def home(request: Request, db: Session = Depends(get_db)):
     lang = active_lang(request)
 
-    highlight = db.execute(
-        select(Page).where(Page.slug == "section-highlight")
-    ).scalar_one_or_none()
-
-    highlight_tr = None
-    if highlight:
-        # 2) Ambil terjemahan dengan prioritas: lang aktif -> en -> id
-        priority = case(
-            (PageTR.lang == lang, 0),
-            (PageTR.lang == "en", 1),
-            (PageTR.lang == "id", 2),
-            else_=3,
-        )
-        highlight_tr = db.execute(
-            select(PageTR)
-            .where(PageTR.page_id == highlight.id, PageTR.lang.in_([lang, "en", "id"]))
-            .order_by(priority)
-            .limit(1)
-        ).scalar_one_or_none()
-
-    kapabilitas = db.execute(
-        select(Page).where(Page.slug == "section-kapabilitas")
-    ).scalar_one_or_none()
-
-    kapabilitas_tr = None
-    if kapabilitas:
-        # 2) Ambil terjemahan dengan prioritas: lang aktif -> en -> id
-        priority = case(
-            (PageTR.lang == lang, 0),
-            (PageTR.lang == "en", 1),
-            (PageTR.lang == "id", 2),
-            else_=3,
-        )
-        kapabilitas_tr = db.execute(
-            select(PageTR)
-            .where(
-                PageTR.page_id == kapabilitas.id, PageTR.lang.in_([lang, "en", "id"])
-            )
-            .order_by(priority)
-            .limit(1)
-        ).scalar_one_or_none()
+    section_home_1_tr = get_slug_page(db, "section-home-1", lang)
+    section_home_2_tr = get_slug_page(db, "section-home-2", lang)
+    highlight_tr = get_slug_page(db, "section-highlight", lang)
+    kapabilitas_tr = get_slug_page(db, "section-kapabilitas", lang)
 
     items = (
         db.execute(
@@ -130,6 +113,8 @@ async def home(request: Request, db: Session = Depends(get_db)):
             "slides": slides,
             "highlight_tr": highlight_tr,
             "kapabilitas_tr": kapabilitas_tr,
+            "section_home_1_tr": section_home_1_tr,
+            "section_home_2_tr": section_home_2_tr,
         },
     )
 

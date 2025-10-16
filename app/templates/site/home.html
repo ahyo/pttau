@@ -93,60 +93,7 @@ endblock %} {% block content %}
 <section class="section-intro py-5">
   <div class="container">
     <div class="row align-items-center g-4">
-      <div class="col-lg-7" data-aos="fade-up">
-        <h1 class="display-5 fw-bold mb-3">
-          Engineering Services &amp; Weapon System
-        </h1>
-        <p
-          class="lead text-secondary mb-4"
-          data-aos="fade-up"
-          data-aos-delay="100"
-        >
-          A short tagline about aerospace engineering, simulation, product
-          development, system integration, and safety systems.
-        </p>
-        <div
-          class="d-flex flex-wrap gap-3"
-          data-aos="zoom-in"
-          data-aos-delay="150"
-        >
-          <a href="/portfolio" class="btn btn-lg btn-brand shadow-sm"
-            >{{ i18n.t('nav_portfolio') }}</a
-          >
-          <a href="/p/about" class="btn btn-lg btn-outline-brand"
-            >{{ i18n.t('nav_about') }}</a
-          >
-        </div>
-      </div>
-
-      <div class="col-lg-5">
-        <div class="row g-3">
-          <div class="col-6" data-aos="fade-up" data-aos-delay="50">
-            <div class="metric-card">
-              <div class="metric-value">25+</div>
-              <div class="metric-label">Projects</div>
-            </div>
-          </div>
-          <div class="col-6" data-aos="fade-up" data-aos-delay="100">
-            <div class="metric-card">
-              <div class="metric-value">10+</div>
-              <div class="metric-label">Years Experience</div>
-            </div>
-          </div>
-          <div class="col-6" data-aos="fade-up" data-aos-delay="150">
-            <div class="metric-card">
-              <div class="metric-value">6</div>
-              <div class="metric-label">Core Domains</div>
-            </div>
-          </div>
-          <div class="col-6" data-aos="fade-up" data-aos-delay="200">
-            <div class="metric-card">
-              <div class="metric-value">ID/EN/AR</div>
-              <div class="metric-label">Multilingual</div>
-            </div>
-          </div>
-        </div>
-      </div>
+      {{ section_home_1_tr.body | safe}} {{ section_home_2_tr.body | safe}}
     </div>
   </div>
 </section>
