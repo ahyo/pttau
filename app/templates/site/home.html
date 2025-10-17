@@ -43,25 +43,29 @@ endblock %} {% block content %}
         <div class="hero-overlay"></div>
         {% if s.tr %}
         <div
-          class="carousel-caption {{ 'text-start' if loop.index == 1 else '' }}"
+          class="carousel-caption d-flex align-items-center h-100 px-3 px-md-4"
         >
-          {% if s.tr.title %}
-          <h1 class="display-6 fw-bold" data-aos="fade-up" data-aos-delay="100">
-            {{ s.tr.title }}
-          </h1>
-          {% endif %} {% if s.tr.subtitle %}
-          <div class="lead" data-aos="fade-up" data-aos-delay="200">
-            {{ s.tr.subtitle | safe }}
+          <div class="hero-caption">
+            {% if s.tr.title %}
+            <h1 class="hero-title" data-aos="fade-up" data-aos-delay="100">
+              {{ s.tr.title }}
+            </h1>
+            {% endif %} {% if s.tr.subtitle %}
+            <div class="hero-subtitle" data-aos="fade-up" data-aos-delay="200">
+              {{ s.tr.subtitle | safe }}
+            </div>
+            {% endif %} {% if s.tr.cta_text and s.tr.cta_url %}
+            <a
+              href="{{ s.tr.cta_url }}"
+              class="btn btn-primary btn-cta mt-3"
+              style="background-color: #6f869e; border: none"
+              data-aos="zoom-in"
+              data-aos-delay="300"
+            >
+              {{ s.tr.cta_text }}
+            </a>
+            {% endif %}
           </div>
-          {% endif %} {% if s.tr.cta_text and s.tr.cta_url %}
-          <a
-            href="{{ s.tr.cta_url }}"
-            class="btn btn-lg btn-primary"
-            style="background-color: #6f869e; border: none"
-          >
-            {{ s.tr.cta_text }}
-          </a>
-          {% endif %}
         </div>
         {% endif %}
       </div>
