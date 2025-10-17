@@ -10,11 +10,8 @@ load_dotenv()
 
 
 # Gantilah dengan API Key Brevo kamu
-# BREVO_API_KEY = os.getenv("BREVO_API_KEY")
-# BREVO_ENDPOINT = os.getenv("BREVO_ENDPOINT")
-
-BREVO_API_KEY = "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"
-BREVO_ENDPOINT = "https://api.brevo.com/v3/smtp/email"
+BREVO_API_KEY = os.getenv("BREVO_API_KEY")
+BREVO_ENDPOINT = os.getenv("BREVO_ENDPOINT")
 
 
 async def send_brevo_email(
