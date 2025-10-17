@@ -51,6 +51,8 @@
   $(document).ready(function () {
     // Inisialisasi editor di semua textarea konten panjang
     $('textarea[name$="_body"],textarea[name="id_subtitle"],textarea[name="en_subtitle"],textarea[name="ar_subtitle"], textarea[name="description"]').trumbowyg({
+      semantic: false,
+      removeformatPasted: false,
       btns: [
         ['viewHTML'],
         ['undo', 'redo'],
