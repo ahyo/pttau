@@ -33,77 +33,76 @@ section:not(.hero-carousel) {
     z-index: 1;
 }
 
-/* --- CAPTION: POSISI DI TENGAH BAWAH --- */
+/* --- Override default Bootstrap carousel caption --- */
 .carousel-caption {
     position: absolute;
-    inset: 0;
+    bottom: 60px;
+    /* Jarak dari bawah slide, sesuaikan dengan tinggi indikator */
+    top: auto !important;
+    /* Hapus efek tengah Bootstrap */
+    transform: none !important;
+    /* Hapus translateY(-50%) default Bootstrap */
+    left: 50%;
+    translate: -50% 0;
+    /* Tengah horizontal */
     z-index: 2;
-    display: flex;
-    justify-content: center;
-    /* tengah horizontal */
-    align-items: flex-end;
-    /* bawah layar */
+    width: 90%;
+    max-width: 850px;
     text-align: center;
-    /* teks rata tengah */
-    padding-bottom: 10vh;
-    /* jarak dari bawah layar */
-}
-
-/* --- WRAPPER TEKS --- */
-.hero-caption {
-    max-width: 800px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
     color: #fff;
+    padding: 0 1rem;
 }
 
-/* --- TITLE --- */
+/* Overlay gradient bawah agar teks tetap jelas */
+.hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0.15));
+    z-index: 1;
+}
+
+/* Hero text */
 .hero-title {
     font-weight: 700;
     line-height: 1.2;
-    font-size: clamp(1.3rem, 3.5vw + 0.2rem, 2.4rem);
-    color: #fff;
-    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
+    font-size: clamp(1rem, 3vw + 0.5rem, 2rem);
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
     margin-bottom: 0.4rem;
 }
 
-/* --- SUBTITLE --- */
 .hero-subtitle {
-    font-size: clamp(0.85rem, 1.2vw + 0.4rem, 1.1rem);
-    line-height: 1.6;
+    font-size: clamp(0.85rem, 1vw + 0.6rem, 1.1rem);
+    line-height: 1.5;
     color: rgba(255, 255, 255, 0.9);
-    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
     margin-bottom: 1rem;
 }
 
-/* --- CTA BUTTON --- */
+/* Tombol CTA */
 .btn-cta {
-    padding: 0.55rem 1.1rem;
+    padding: 0.55rem 1rem;
     font-size: 0.9rem;
     font-weight: 600;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
 
-/* --- MOBILE VIEW --- */
+/* --- Responsif di HP --- */
 @media (max-width: 576px) {
     .carousel-caption {
-        padding-bottom: 14vh;
-    }
-
-    .hero-caption {
-        max-width: 100%;
-        padding: 0 1rem;
+        bottom: 40px;
+        /* sedikit lebih tinggi agar tak menutupi indikator */
     }
 
     .hero-title {
-        font-size: clamp(1rem, 4vw, 1.6rem);
+        font-size: clamp(0.9rem, 4vw, 1.5rem);
     }
 
     .hero-subtitle {
         font-size: clamp(0.75rem, 3vw, 1rem);
-    }
-
-    .btn-cta {
-        font-size: 0.85rem;
-        padding: 0.5rem 0.9rem;
     }
 }
 
