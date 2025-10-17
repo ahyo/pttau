@@ -268,3 +268,71 @@ html[dir="rtl"] .bullet {
     color: #212529;
     line-height: 1.6;
 }
+
+/* Gambar dalam artikel responsif di semua device */
+.content img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    /* hilangkan inline-gap */
+    margin: 1rem auto;
+    /* center + beri spasi vertikal */
+    border-radius: .25rem;
+    /* opsional: sudut lembut */
+}
+
+/* Batasi gambar yang sangat besar di layar lebar */
+@media (min-width: 992px) {
+    .content img {
+        max-width: 900px;
+        /* atau 70ch sesuai selera layout */
+    }
+}
+
+/* Jika ada gambar di-wrap <figure> + <figcaption> */
+.content figure {
+    margin: 1.25rem auto;
+}
+
+.content figure img {
+    margin: 0 auto .5rem;
+}
+
+.content figcaption {
+    color: #6c757d;
+    font-size: .9rem;
+    text-align: center;
+}
+
+/* Jika ada gambar di-floating di artikel lama */
+.content img[style*="float:left"],
+.content img.float-start {
+    margin: .5rem 1rem .5rem 0;
+}
+
+.content img[style*="float:right"],
+.content img.float-end {
+    margin: .5rem 0 .5rem 1rem;
+}
+
+@media (max-width: 576px) {
+
+    .content img[style*="float:"],
+    .content img.float-start,
+    .content img.float-end {
+        float: none !important;
+        margin: 1rem auto !important;
+    }
+}
+
+/* Responsive embed (kalau ada video di body) */
+.content iframe,
+.content video {
+    max-width: 100%;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    /* aman untuk YouTube/Vimeo */
+    display: block;
+    margin: 1rem 0;
+}
