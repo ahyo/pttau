@@ -38,7 +38,7 @@ section:not(.hero-carousel) {
     right: 0;
     z-index: 2;
     display: flex;
-    justify-content: flex-start;
+    justify-content: flex-center;
     /* teks mulai dari kiri (bisa ubah ke center) */
     align-items: flex-end;
     padding: 0 2rem 6vh 2rem;
