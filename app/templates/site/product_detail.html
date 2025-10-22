@@ -1,0 +1,120 @@
+{% extends "layouts/base.html" %}
+{% block title %}{{ tr.name if tr else product.slug }} — {{ settings.APP_NAME }}{% endblock %}
+{% block content %}
+<section class="pt-5 pb-4 bg-gradient" style="background: linear-gradient(135deg, #0f172a, #1d4ed8);">
+  <div class="container py-4">
+    <div class="row align-items-center g-4">
+      <div class="col-lg-6" data-aos="fade-right">
+        <h1 class="display-5 text-white fw-bold mb-3">{{ tr.name if tr else product.slug }}</h1>
+        <p class="text-white-50 lead mb-0">
+          {{ tr.short_description if tr and tr.short_description else 'Solusi terbaik dari Wulung AeroTech untuk kebutuhan aeronautika Anda.' }}
+        </p>
+      </div>
+      <div class="col-lg-6" data-aos="fade-left">
+        <div class="ratio ratio-4x3 bg-dark rounded-4 overflow-hidden shadow-lg border border-white border-opacity-10">
+          {% if product.image_url %}
+          <img src="{{ product.image_url }}" alt="{{ tr.name if tr else product.slug }}" class="w-100 h-100 object-fit-cover" />
+          {% else %}
+          <div class="d-flex align-items-center justify-content-center text-white-50">
+            <i class="bi bi-box-seam" style="font-size: 4rem;"></i>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="py-5">
+  <div class="container">
+    {% if msg %}
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+      {{ msg }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endif %}
+
+    <div class="row g-5">
+      <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+          <div class="card-body p-4">
+            <h2 class="h4 mb-3">Tentang Produk</h2>
+            {% if tr and tr.description %}
+            <div class="rich-text">{{ tr.description | safe }}</div>
+            {% else %}
+            <p class="text-muted mb-0">
+              Informasi detail produk akan segera tersedia. Hubungi kami untuk mendapatkan spesifikasi lebih lanjut.
+            </p>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="card border-0 shadow-sm mt-4">
+          <div class="card-body p-4">
+            <h3 class="h5 mb-3">Mengapa Memilih Produk Ini?</h3>
+            <ul class="list-unstyled mb-0">
+              <li class="d-flex align-items-start gap-3 mb-3">
+                <i class="bi bi-check-circle-fill text-primary"></i>
+                <div>
+                  <div class="fw-semibold">Kualitas Premium</div>
+                  <p class="text-muted mb-0">Dirancang dengan standar aeronautika dan uji kualitas ketat.</p>
+                </div>
+              </li>
+              <li class="d-flex align-items-start gap-3 mb-3">
+                <i class="bi bi-check-circle-fill text-primary"></i>
+                <div>
+                  <div class="fw-semibold">Dukungan Teknis</div>
+                  <p class="text-muted mb-0">Tim ahli kami siap membantu implementasi dan after sales.</p>
+                </div>
+              </li>
+              <li class="d-flex align-items-start gap-3">
+                <i class="bi bi-check-circle-fill text-primary"></i>
+                <div>
+                  <div class="fw-semibold">Integrasi Fleksibel</div>
+                  <p class="text-muted mb-0">Kompatibel dengan berbagai kebutuhan operasional penerbangan.</p>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-4">
+        <div class="card border-0 shadow-sm sticky-top" style="top: 6rem;">
+          <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <span class="text-muted">Harga</span>
+              <span class="h4 text-primary mb-0">Rp {{ "{:,.2f}".format(product.price or 0) }}</span>
+            </div>
+            <div class="d-flex justify-content-between mb-4">
+              <span class="text-muted">Ketersediaan</span>
+              <span class="badge {% if product.stock > 0 %}bg-success{% else %}bg-secondary{% endif %}">
+                {% if product.stock > 0 %}Stok {{ product.stock }}{% else %}Pre-order{% endif %}
+              </span>
+            </div>
+
+            {% if user %}
+            <form method="post" action="/cart/add" class="d-grid gap-3">
+              <input type="hidden" name="product_id" value="{{ product.id }}" />
+              <div>
+                <label class="form-label">Jumlah</label>
+                <input type="number" name="quantity" min="1" value="1" class="form-control" />
+              </div>
+              <button type="submit" class="btn btn-primary btn-lg">
+                <i class="bi bi-cart-plus me-1"></i>Tambahkan ke Keranjang
+              </button>
+            </form>
+            {% else %}
+            <div class="alert alert-warning" role="alert">
+              Silakan <a href="/login" class="alert-link">login</a> atau <a href="/register" class="alert-link">registrasi</a> terlebih dahulu untuk memesan produk ini.
+            </div>
+            <a href="/login" class="btn btn-primary w-100 mb-2">Login</a>
+            <a href="/register" class="btn btn-outline-primary w-100">Daftar Sekarang</a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

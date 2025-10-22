@@ -336,3 +336,22 @@ html[dir="rtl"] .bullet {
     display: block;
     margin: 1rem 0;
 }
+
+.rich-text p {
+    margin-bottom: 1rem;
+    line-height: 1.7;
+}
+
+.rich-text ul,
+.rich-text ol {
+    padding-left: 1.2rem;
+    margin-bottom: 1.25rem;
+}
+
+.rich-text li {
+    margin-bottom: 0.5rem;
+}
+
+.object-fit-cover {
+    object-fit: cover !important;
+}

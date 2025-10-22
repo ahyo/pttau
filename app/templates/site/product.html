@@ -1,0 +1,108 @@
+{% extends "layouts/base.html" %}
+{% block title %}Produk Kami — {{ settings.APP_NAME }}{% endblock %}
+{% block content %}
+<section class="py-5 bg-dark text-white" style="background: linear-gradient(120deg, #0f172a, #1d4ed8);">
+  <div class="container py-4">
+    <div class="row align-items-center g-4">
+      <div class="col-lg-7" data-aos="fade-right">
+        <h1 class="display-5 fw-bold mb-3">Solusi Aeronautika Terkini</h1>
+        <p class="lead text-white-50 mb-4">
+          Jelajahi rangkaian produk dan layanan unggulan kami yang dirancang untuk meningkatkan kinerja armada Anda. Dari komponen vital hingga dukungan purna jual, kami hadir dengan standar keamanan dan efisiensi tinggi.
+        </p>
+        <div class="d-flex flex-wrap gap-3">
+          <a class="btn btn-light btn-lg px-4" href="/catalog">Lihat Katalog</a>
+          <a class="btn btn-outline-light btn-lg px-4" href="/contact">Hubungi Kami</a>
+        </div>
+      </div>
+      <div class="col-lg-5" data-aos="fade-left">
+        <div class="card border-0 shadow-lg bg-white text-dark">
+          <div class="card-body p-4">
+            <h3 class="h5 mb-3">Mengapa memilih Wulung AeroTech?</h3>
+            <ul class="list-unstyled mb-0">
+              <li class="d-flex gap-3 mb-3">
+                <i class="bi bi-check-circle-fill text-primary"></i>
+                <div>
+                  <div class="fw-semibold">Teknologi Mutakhir</div>
+                  <p class="text-muted mb-0">Produk kami dirancang dengan standar keselamatan global dan proses manufaktur presisi tinggi.</p>
+                </div>
+              </li>
+              <li class="d-flex gap-3 mb-3">
+                <i class="bi bi-check-circle-fill text-primary"></i>
+                <div>
+                  <div class="fw-semibold">Dukungan Terintegrasi</div>
+                  <p class="text-muted mb-0">Tim ahli siap memberikan konsultasi, instalasi, serta layanan purna jual yang responsif.</p>
+                </div>
+              </li>
+              <li class="d-flex gap-3">
+                <i class="bi bi-check-circle-fill text-primary"></i>
+                <div>
+                  <div class="fw-semibold">Skalabilitas Fleksibel</div>
+                  <p class="text-muted mb-0">Solusi dapat disesuaikan dengan kebutuhan maskapai, operator helikopter, hingga UAV.</p>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="py-5">
+  <div class="container">
+    <div class="row g-4 align-items-center mb-5">
+      <div class="col-lg-6" data-aos="fade-right">
+        <h2 class="h3 fw-bold mb-3">Produk Unggulan</h2>
+        <p class="text-muted">
+          Kami terus mengembangkan produk yang mendukung kemandirian industri kedirgantaraan nasional. Setiap produk melewati proses riset, pengujian, dan sertifikasi secara ketat.
+        </p>
+      </div>
+      <div class="col-lg-6" data-aos="fade-left">
+        <div class="d-flex flex-wrap gap-3">
+          <div class="badge bg-primary bg-opacity-10 text-primary px-3 py-2">Avionics</div>
+          <div class="badge bg-primary bg-opacity-10 text-primary px-3 py-2">Maintenance Tools</div>
+          <div class="badge bg-primary bg-opacity-10 text-primary px-3 py-2">Ground Support</div>
+          <div class="badge bg-primary bg-opacity-10 text-primary px-3 py-2">Safety Equipment</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-md-4" data-aos="fade-up" data-aos-delay="50">
+        <div class="card h-100 border-0 shadow-sm">
+          <div class="card-body p-4">
+            <div class="mb-3 text-primary"><i class="bi bi-cpu fs-3"></i></div>
+            <h3 class="h5">Sistem Avionik</h3>
+            <p class="text-muted">Integrasi perangkat avionik terkini untuk meningkatkan kesadaran situasional dan keselamatan penerbangan.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4" data-aos="fade-up" data-aos-delay="100">
+        <div class="card h-100 border-0 shadow-sm">
+          <div class="card-body p-4">
+            <div class="mb-3 text-primary"><i class="bi bi-gear-wide-connected fs-3"></i></div>
+            <h3 class="h5">Maintenance & Tooling</h3>
+            <p class="text-muted">Peralatan perawatan terstandarisasi untuk memastikan pesawat selalu dalam kondisi prima.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4" data-aos="fade-up" data-aos-delay="150">
+        <div class="card h-100 border-0 shadow-sm">
+          <div class="card-body p-4">
+            <div class="mb-3 text-primary"><i class="bi bi-shield-check fs-3"></i></div>
+            <h3 class="h5">Safety & Training</h3>
+            <p class="text-muted">Perangkat keselamatan dan modul pelatihan yang dirancang sesuai regulasi penerbangan internasional.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-5 text-center" data-aos="fade-up">
+      <p class="text-muted mb-3">Ingin melihat daftar produk lengkap dengan harga dan ketersediaan stok?</p>
+      <a class="btn btn-primary btn-lg" href="/catalog">
+        Buka Katalog Produk
+      </a>
+    </div>
+  </div>
+</section>
+{% endblock %}

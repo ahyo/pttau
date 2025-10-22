@@ -1,0 +1,87 @@
+{% extends "layouts/base.html" %}
+{% block title %}Katalog Produk — {{ settings.APP_NAME }}{% endblock %}
+{% block content %}
+<section class="py-5 bg-dark text-white" style="background: linear-gradient(135deg, #0f172a, #1d4ed8);">
+  <div class="container py-4">
+    <div class="row align-items-center">
+      <div class="col-lg-8">
+        <h1 class="display-5 fw-bold mb-3" data-aos="fade-right">Temukan Solusi Terbaik Kami</h1>
+        <p class="lead mb-0" data-aos="fade-right" data-aos-delay="100">
+          Jelajahi jajaran produk unggulan Wulung AeroTech. Pilih produk sesuai kebutuhan Anda dan nikmati pengalaman berbelanja yang mulus.
+        </p>
+      </div>
+      <div class="col-lg-4 text-lg-end mt-4 mt-lg-0" data-aos="fade-left">
+        <a class="btn btn-outline-light px-4" href="#catalog-grid">Lihat Produk</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="py-5" id="catalog-grid">
+  <div class="container">
+    {% if msg %}
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      {{ msg }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endif %}
+
+    {% if products %}
+    <div class="row g-4">
+      {% for item in products %}
+      {% set product = item.product %}
+      {% set tr = item.tr %}
+      <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="{{ loop.index * 70 }}">
+        <div class="card shadow border-0 h-100 overflow-hidden">
+          <div class="ratio ratio-4x3 bg-dark">
+            {% if product.image_url %}
+            <img src="{{ product.image_url }}" class="w-100 h-100 object-fit-cover" alt="{{ tr.name if tr else product.slug }}" />
+            {% else %}
+            <div class="d-flex align-items-center justify-content-center text-white-50">
+              <i class="bi bi-box-seam" style="font-size: 3rem;"></i>
+            </div>
+            {% endif %}
+          </div>
+          <div class="card-body d-flex flex-column">
+            <div class="mb-2">
+              <span class="badge rounded-pill bg-primary-subtle text-primary">Ready</span>
+            </div>
+            <h5 class="card-title">{{ tr.name if tr else product.slug }}</h5>
+            <p class="card-text text-muted flex-grow-1">
+              {{ tr.short_description if tr and tr.short_description else (tr.description[:120] ~ '...') if tr and tr.description else 'Produk premium Wulung AeroTech' }}
+            </p>
+            <div class="d-flex justify-content-between align-items-center mt-3">
+              <div class="fw-semibold text-primary">Rp {{ "{:,.2f}".format(product.price or 0) }}</div>
+              <a class="btn btn-outline-primary btn-sm" href="/catalog/{{ product.slug }}">
+                Detail
+              </a>
+            </div>
+            <div class="mt-3">
+              {% if user %}
+              <form method="post" action="/cart/add" class="d-flex align-items-center gap-2">
+                <input type="hidden" name="product_id" value="{{ product.id }}" />
+                <input type="hidden" name="quantity" value="1" />
+                <button type="submit" class="btn btn-primary w-100">
+                  <i class="bi bi-cart-plus me-1"></i>Tambah ke Keranjang
+                </button>
+              </form>
+              {% else %}
+              <a class="btn btn-light w-100" href="/login?msg=Login%20untuk%20membeli">
+                <i class="bi bi-box-arrow-in-right me-1"></i>Login untuk Membeli
+              </a>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+      <h3 class="fw-semibold">Produk segera hadir</h3>
+      <p class="text-muted">Administrator belum menambahkan produk. Silakan kembali lagi nanti.</p>
+    </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

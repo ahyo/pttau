@@ -9,6 +9,19 @@ uvicorn app.main:app --reload
 ```
 Open http://127.0.0.1:8000
 
+## Database migrations (Alembic)
+
+```bash
+alembic upgrade head      # apply latest migrations
+alembic revision -m "msg" # create a new migration after editing models
+```
+
+On a new environment that already has the schema, mark the baseline first:
+
+```bash
+alembic stamp 0001_baseline
+```
+
 ## Deploy on cPanel (shared hosting)
 - Use **Setup Python App** (Passenger)
 - App dir: `~/company-profile`

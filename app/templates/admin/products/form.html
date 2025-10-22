@@ -1,0 +1,194 @@
+{% extends "layouts/base.html" %}
+{% block title %}{% if mode == 'create' %}Tambah Produk{% else %}Ubah Produk{% endif %} — {{ settings.APP_NAME }}{% endblock %}
+{% block content %}
+{% set action = '/admin/products/create' if mode == 'create' else '/admin/products/' ~ product.id ~ '/edit' %}
+{% set id_tr = translations['id'] if translations and translations.get('id') else None %}
+{% set en_tr = translations['en'] if translations and translations.get('en') else None %}
+{% set ar_tr = translations['ar'] if translations and translations.get('ar') else None %}
+
+<section class="py-5">
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+          <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <div>
+                <h1 class="h4 mb-1">{% if mode == 'create' %}Tambah Produk{% else %}Perbarui Produk{% endif %}</h1>
+                <p class="text-muted mb-0">Lengkapi informasi berikut agar produk tampil menarik di katalog.</p>
+              </div>
+              <a class="btn btn-outline-secondary btn-sm" href="/admin/products">
+                <i class="bi bi-arrow-left"></i> Kembali
+              </a>
+            </div>
+
+            <form method="post" action="{{ action }}" enctype="multipart/form-data">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label">Slug</label>
+                  <input
+                    name="slug"
+                    type="text"
+                    class="form-control"
+                    placeholder="otomatis bila dikosongkan"
+                    value="{{ product.slug if product else '' }}"
+                  />
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label">Harga</label>
+                  <div class="input-group">
+                    <span class="input-group-text">Rp</span>
+                    <input
+                      name="price"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      class="form-control"
+                      value="{{ product.price if product else '' }}"
+                      required
+                    />
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label">Stok</label>
+                  <input
+                    name="stock"
+                    type="number"
+                    min="0"
+                    class="form-control"
+                    value="{{ product.stock if product else 0 }}"
+                  />
+                </div>
+                <div class="col-12">
+                  <label class="form-label">Gambar Produk</label>
+                  <input
+                    name="image_url"
+                    type="url"
+                    class="form-control mb-2"
+                    placeholder="https://... (opsional)"
+                    value="{{ product.image_url if product and product.image_url and product.image_url.startswith('http') else '' }}"
+                  />
+                  <input
+                    name="image_file"
+                    type="file"
+                    accept="image/*"
+                    class="form-control"
+                  />
+                  <div class="form-text">Isi URL atau unggah file. Jika keduanya diisi, unggahan akan diprioritaskan.</div>
+                </div>
+                <div class="col-12">
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" role="switch" name="is_active" id="is_active" {% if mode == 'create' or (product and product.is_active) %}checked{% endif %} />
+                    <label class="form-check-label" for="is_active">Tampilkan produk di katalog</label>
+                  </div>
+                </div>
+              </div>
+
+              <hr class="my-4" />
+
+              <div class="accordion" id="translationAccordion">
+                <div class="accordion-item">
+                  <h2 class="accordion-header" id="headingID">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseID" aria-expanded="true" aria-controls="collapseID">
+                      Konten Bahasa Indonesia
+                    </button>
+                  </h2>
+                  <div id="collapseID" class="accordion-collapse collapse show" aria-labelledby="headingID" data-bs-parent="#translationAccordion">
+                    <div class="accordion-body">
+                      <div class="row g-3">
+                        <div class="col-12">
+                          <label class="form-label">Nama Produk</label>
+                          <input name="id_name" type="text" class="form-control" value="{{ id_tr.name if id_tr else '' }}" />
+                        </div>
+                        <div class="col-12">
+                          <label class="form-label">Deskripsi Singkat</label>
+                          <input name="id_short_description" type="text" class="form-control" value="{{ id_tr.short_description if id_tr else '' }}" />
+                        </div>
+                        <div class="col-12">
+                          <label class="form-label">Deskripsi Lengkap</label>
+                          <textarea name="id_description" class="form-control" rows="5">{{ id_tr.description if id_tr else '' }}</textarea>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="accordion-item">
+                  <h2 class="accordion-header" id="headingEN">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEN" aria-expanded="false" aria-controls="collapseEN">
+                      Konten Bahasa Inggris
+                    </button>
+                  </h2>
+                  <div id="collapseEN" class="accordion-collapse collapse" aria-labelledby="headingEN" data-bs-parent="#translationAccordion">
+                    <div class="accordion-body">
+                      <div class="row g-3">
+                        <div class="col-12">
+                          <label class="form-label">Product Name</label>
+                          <input name="en_name" type="text" class="form-control" value="{{ en_tr.name if en_tr else '' }}" />
+                        </div>
+                        <div class="col-12">
+                          <label class="form-label">Short Description</label>
+                          <input name="en_short_description" type="text" class="form-control" value="{{ en_tr.short_description if en_tr else '' }}" />
+                        </div>
+                        <div class="col-12">
+                          <label class="form-label">Full Description</label>
+                          <textarea name="en_description" class="form-control" rows="5">{{ en_tr.description if en_tr else '' }}</textarea>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="accordion-item">
+                  <h2 class="accordion-header" id="headingAR">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAR" aria-expanded="false" aria-controls="collapseAR">
+                      Konten Bahasa Arab
+                    </button>
+                  </h2>
+                  <div id="collapseAR" class="accordion-collapse collapse" aria-labelledby="headingAR" data-bs-parent="#translationAccordion">
+                    <div class="accordion-body">
+                      <div class="row g-3">
+                        <div class="col-12">
+                          <label class="form-label">اسم المنتج</label>
+                          <input name="ar_name" type="text" class="form-control" value="{{ ar_tr.name if ar_tr else '' }}" />
+                        </div>
+                        <div class="col-12">
+                          <label class="form-label">وصف قصير</label>
+                          <input name="ar_short_description" type="text" class="form-control" value="{{ ar_tr.short_description if ar_tr else '' }}" />
+                        </div>
+                        <div class="col-12">
+                          <label class="form-label">وصف تفصيلي</label>
+                          <textarea name="ar_description" class="form-control" rows="5">{{ ar_tr.description if ar_tr else '' }}</textarea>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="d-flex justify-content-end gap-3 mt-4">
+                <a class="btn btn-light" href="/admin/products">Batal</a>
+                <button class="btn btn-primary" type="submit">
+                  {% if mode == 'create' %}Simpan Produk{% else %}Simpan Perubahan{% endif %}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      {% if product and product.image_url %}
+      <div class="col-lg-4">
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-white fw-semibold">Pratinjau</div>
+          <div class="card-body">
+            <img src="{{ product.image_url }}" alt="Preview" class="img-fluid rounded mb-3" />
+            <div class="text-muted small">Perbarui URL gambar untuk mengganti pratinjau.</div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}

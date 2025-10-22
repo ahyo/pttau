@@ -1,0 +1,63 @@
+{% extends "layouts/base.html" %}
+{% block title %}Daftar — {{ settings.APP_NAME }}{% endblock %}
+{% block content %}
+<section class="py-5 bg-light">
+  <div class="container py-5">
+    <div class="row align-items-center g-5">
+      <div class="col-lg-6" data-aos="fade-right">
+        <h1 class="display-5 fw-bold mb-3">Mulai Belanja di Wulung AeroTech</h1>
+        <p class="lead text-muted">
+          Buat akun untuk menikmati pengalaman berbelanja yang terpersonalisasi, menyimpan keranjang belanja, dan mendapatkan update produk terbaru.
+        </p>
+        <div class="d-flex align-items-center gap-3 mt-4">
+          <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+            <i class="bi bi-shield-lock"></i>
+          </div>
+          <div>
+            <div class="fw-semibold">Keamanan Terjamin</div>
+            <p class="text-muted mb-0">Kami menjaga data Anda dengan enkripsi dan standar keamanan modern.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-6" data-aos="fade-left">
+        <div class="card border-0 shadow-lg">
+          <div class="card-body p-4 p-md-5">
+            <h2 class="h4 mb-4">Buat Akun Baru</h2>
+
+            {% if request.query_params.get('msg') %}
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+              {{ request.query_params.get('msg') }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endif %}
+
+            <form method="post" action="/register" class="d-grid gap-3">
+              <div>
+                <label class="form-label">Username</label>
+                <input type="text" name="username" class="form-control form-control-lg" minlength="3" required />
+              </div>
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label">Password</label>
+                  <input type="password" name="password" class="form-control form-control-lg" minlength="6" required />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Konfirmasi Password</label>
+                  <input type="password" name="confirm_password" class="form-control form-control-lg" minlength="6" required />
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary btn-lg">Daftar</button>
+            </form>
+
+            <div class="text-center mt-4">
+              <span class="text-muted">Sudah punya akun?</span>
+              <a href="/login" class="fw-semibold">Masuk di sini</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

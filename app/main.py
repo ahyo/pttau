@@ -11,6 +11,11 @@ from app.routers import (
     admin_carousel,
     admin_footer,
     admin_menu,
+    admin_product,
+    auth,
+    catalog,
+    cart,
+    product_page,
     site,
     api_public,
     admin,
@@ -95,9 +100,14 @@ async def set_lang(code: str, request: Request):
     return resp
 
 
+app.include_router(auth.router)
+app.include_router(catalog.router)
+app.include_router(cart.router)
+app.include_router(product_page.router)
 app.include_router(site.router)
 app.include_router(api_public.router, prefix="/api")
 app.include_router(admin.router, prefix="")
 app.include_router(admin_carousel.router)
 app.include_router(admin_footer.router)
 app.include_router(admin_menu.router)
+app.include_router(admin_product.router)

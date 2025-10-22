@@ -100,7 +100,46 @@
           </a>
         </li>
         {% endif %} {% endmacro %} {# render semua root items dari DB #} {% for
-        it in header_menu %} {{ render_item(it) }} {% endfor %} {# language
+        it in header_menu %} {{ render_item(it) }} {% endfor %}
+
+        <li class="nav-item">
+          <a class="nav-link text-white text-uppercase position-relative" href="/cart">
+            <i class="bi bi-cart3"></i>
+            {% if cart_count %}
+            <span
+              class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+              style="font-size: 0.7rem"
+            >
+              {{ cart_count }}
+            </span>
+            {% endif %}
+          </a>
+        </li>
+
+        {% if user %}
+        <li class="nav-item dropdown ms-lg-2">
+          <a
+            class="nav-link dropdown-toggle text-white text-uppercase"
+            href="#"
+            data-bs-toggle="dropdown"
+          >
+            <i class="bi bi-person-circle me-1"></i>{{ user.username }}
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="/cart">Shopping Cart</a></li>
+            <li><a class="dropdown-item" href="/logout">Logout</a></li>
+          </ul>
+        </li>
+        {% else %}
+        <li class="nav-item">
+          <a class="nav-link text-white text-uppercase" href="/login">Login</a>
+        </li>
+        <li class="nav-item ms-lg-2">
+          <a class="btn btn-sm btn-light text-uppercase px-3" href="/register">Daftar</a>
+        </li>
+        {% endif %}
+
+        {# language
         switch tetap manual (atau juga bisa dimodelkan sebagai menu di DB) #}
         <li class="nav-item dropdown">
           <a
@@ -138,13 +177,10 @@
             <li><a class="dropdown-item" href="/admin/pages">Pages</a></li>
 
             <li><a class="dropdown-item" href="/admin/footer">Footer</a></li>
+            <li><a class="dropdown-item" href="/admin/products">Products</a></li>
             <li><hr class="dropdown-divider" /></li>
             <li><a class="dropdown-item" href="/admin/logout">Logout</a></li>
           </ul>
-        </li>
-        {% else %}
-        <li class="nav-item">
-          <a class="nav-link" href="/admin/login">Login</a>
         </li>
         {% endif %}
       </ul>

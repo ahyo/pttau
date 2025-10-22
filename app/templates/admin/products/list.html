@@ -1,0 +1,99 @@
+{% extends "layouts/base.html" %}
+{% block title %}Kelola Produk — {{ settings.APP_NAME }}{% endblock %}
+{% block content %}
+<section class="py-5 bg-light">
+  <div class="container">
+    <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-4 gap-3">
+      <div>
+        <h1 class="h3 mb-1">Katalog Produk</h1>
+        <p class="text-muted mb-0">Tambah, perbarui, dan kelola produk yang tampil untuk pelanggan.</p>
+      </div>
+      <a class="btn btn-primary" href="/admin/products/create">
+        <i class="bi bi-plus-lg me-1"></i>Produk Baru
+      </a>
+    </div>
+
+    {% if msg %}
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      {{ msg }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endif %}
+
+    <div class="card shadow-sm">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Produk</th>
+              <th class="text-center">Harga</th>
+              <th class="text-center">Stok</th>
+              <th class="text-center">Status</th>
+              <th class="text-end">Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if products %}
+            {% for product in products %}
+            {% set tr_lang = (product.translations | selectattr('lang', 'equalto', lang) | list | first) %}
+            {% set tr_en = (product.translations | selectattr('lang', 'equalto', 'en') | list | first) %}
+            {% set tr_id = (product.translations | selectattr('lang', 'equalto', 'id') | list | first) %}
+            {% set tr = tr_lang or tr_en or tr_id %}
+            <tr>
+              <td>
+                <div class="d-flex align-items-center gap-3">
+                  <div class="ratio ratio-1x1" style="width: 64px;">
+                    {% if product.image_url %}
+                    <img src="{{ product.image_url }}" class="img-fluid rounded" alt="{{ tr.name if tr else product.slug }}">
+                    {% else %}
+                    <div class="bg-secondary bg-opacity-10 rounded d-flex align-items-center justify-content-center text-secondary fw-semibold">
+                      {{ (tr.name if tr else product.slug)[:1]|upper }}
+                    </div>
+                    {% endif %}
+                  </div>
+                  <div>
+                    <div class="fw-semibold">{{ tr.name if tr else product.slug }}</div>
+                    <div class="text-muted small">/{{ product.slug }}</div>
+                  </div>
+                </div>
+              </td>
+              <td class="text-center">{{ "{:,.2f}".format(product.price or 0) }}</td>
+              <td class="text-center">{{ product.stock }}</td>
+              <td class="text-center">
+                {% if product.is_active %}
+                <span class="badge bg-success">Aktif</span>
+                {% else %}
+                <span class="badge bg-secondary">Nonaktif</span>
+                {% endif %}
+              </td>
+              <td class="text-end">
+                <div class="btn-group">
+                  <a class="btn btn-sm btn-outline-primary" href="/catalog/{{ product.slug }}" target="_blank">
+                    <i class="bi bi-eye"></i>
+                  </a>
+                  <a class="btn btn-sm btn-outline-secondary" href="/admin/products/{{ product.id }}/edit">
+                    <i class="bi bi-pencil"></i>
+                  </a>
+                  <form method="post" action="/admin/products/{{ product.id }}/delete" onsubmit="return confirm('Hapus produk ini?');">
+                    <button class="btn btn-sm btn-outline-danger" type="submit">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr>
+              <td colspan="5" class="text-center py-5 text-muted">
+                Belum ada produk. Mulai dengan menambahkan produk pertama Anda.
+              </td>
+            </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

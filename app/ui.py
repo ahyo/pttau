@@ -13,7 +13,9 @@ def common_ctx(request, extra: dict | None = None):
     base = {
         "request": request,
         "lang": getattr(request.state, "lang", settings.DEFAULT_LANG),
-        "admin": request.session.get("admin"),  # <- penting
+        "admin": getattr(request.state, "admin", request.session.get("admin")),
+        "user": getattr(request.state, "user", request.session.get("user")),
+        "cart_count": getattr(request.state, "cart_count", 0),
     }
     if extra:
         base.update(extra)
