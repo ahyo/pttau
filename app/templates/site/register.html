@@ -40,11 +40,24 @@
               <div class="row g-3">
                 <div class="col-md-6">
                   <label class="form-label">Password</label>
-                  <input type="password" name="password" class="form-control form-control-lg" minlength="6" maxlength="72" required />
+                  <div class="input-group" data-toggle-password>
+                    <input type="password" name="password" class="form-control form-control-lg" minlength="6" maxlength="71" required data-password-target />
+                    <button class="btn btn-outline-secondary" type="button" data-toggle-password-button aria-label="Toggle password visibility">
+                      <i class="bi bi-eye" data-icon-show></i>
+                      <i class="bi bi-eye-slash d-none" data-icon-hide></i>
+                    </button>
+                  </div>
+                  <div class="form-text">Maksimal 71 karakter (karakter non-ASCII dapat dihitung lebih dari satu).</div>
                 </div>
                 <div class="col-md-6">
                   <label class="form-label">Konfirmasi Password</label>
-                  <input type="password" name="confirm_password" class="form-control form-control-lg" minlength="6" maxlength="72" required />
+                  <div class="input-group" data-toggle-password>
+                    <input type="password" name="confirm_password" class="form-control form-control-lg" minlength="6" maxlength="71" required data-password-target />
+                    <button class="btn btn-outline-secondary" type="button" data-toggle-password-button aria-label="Toggle password visibility">
+                      <i class="bi bi-eye" data-icon-show></i>
+                      <i class="bi bi-eye-slash d-none" data-icon-hide></i>
+                    </button>
+                  </div>
                 </div>
               </div>
               <button type="submit" class="btn btn-primary btn-lg">Daftar</button>
