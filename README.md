@@ -1,4 +1,6 @@
-# Company Profile — FastAPI + Bootstrap + MySQL (ID/EN/AR)
+![Deploy CI/CD](https://github.com/ahyo/pttau/actions/workflows/deploy.yml/badge.svg)
+
+# PT TAU — FastAPI + Bootstrap + MySQL (ID/EN/AR)
 
 ## Quickstart (Local)
 ```bash
