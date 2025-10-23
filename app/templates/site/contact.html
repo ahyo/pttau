@@ -1,9 +1,32 @@
 {% extends 'layouts/base.html' %}
 {% block title %}Contact — {{ settings.APP_NAME if settings else 'Company' }}{% endblock %}
 {% block content %}
+<section class="py-5 bg-dark text-white" style="background: linear-gradient(135deg, #0f172a, #1d4ed8);">
+  <div class="container py-4">
+    <div class="row align-items-center">
+      <div class="col-lg-8">
+        <nav aria-label="breadcrumb" class="mb-3">
+          <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item">
+              <a class="text-white-50 text-decoration-none" href="/">Home</a>
+            </li>
+            <li class="breadcrumb-item text-white active" aria-current="page">
+              {{ i18n.t('nav_contact') }}
+            </li>
+          </ol>
+        </nav>
+        <h1 class="display-5 fw-bold mb-3" data-aos="fade-right">{{ i18n.t('nav_contact') }}</h1>
+        <p class="lead mb-0 text-white-50" data-aos="fade-right" data-aos-delay="100">
+          Kami siap membantu Anda. Lengkapi formulir di bawah ini untuk menghubungi tim Wulung AeroTech.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section class="py-5">
   <div class="container">
-    <h1 class="h3 mb-3">{{ i18n.t('nav_contact') }}</h1>
+    <h2 class="h4 mb-3 text-muted">{{ i18n.t('nav_contact') }}</h2>
     <form class="row g-3" method="post" action="/api/contact">
       <div class="col-md-6">
         <label class="form-label">Name</label>

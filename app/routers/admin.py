@@ -19,6 +19,48 @@ def require_admin(request: Request):
     return request.session.get("admin")
 
 
+def _normalize_page_slug(value: str, fallback: str = "page") -> str:
+    normalized = slugify(value or "")
+    return normalized or fallback
+
+
+def _page_slug_exists(
+    db: Session, slug: str, exclude_page_id: int | None = None
+) -> bool:
+    stmt = select(Page.id).where(Page.slug == slug)
+    if exclude_page_id is not None:
+        stmt = stmt.where(Page.id != exclude_page_id)
+    return db.execute(stmt).scalar_one_or_none() is not None
+
+
+def _build_page_form_context(
+    request: Request,
+    *,
+    lang: str,
+    i18n,
+    footer_data,
+    mode: str,
+    page_data: dict | None,
+    translations: dict[str, dict],
+    error: str | None = None,
+):
+    return templates.TemplateResponse(
+        "admin/form_page.html",
+        common_ctx(
+            request,
+            {
+                "mode": mode,
+                "page": page_data,
+                "trs": translations,
+                "lang": lang,
+                "i18n": i18n,
+                "footer_sections": footer_data,
+                "error": error,
+            },
+        ),
+        status_code=400 if error else 200,
+    )
+
 @router.get("/admin/login", response_class=HTMLResponse)
 async def admin_login_page(
     request: Request, msg: str = "", db: Session = Depends(get_db)
@@ -218,8 +260,54 @@ async def pages_create(
 ):
     if not require_admin(request):
         return RedirectResponse(url="/admin/login?msg=Please%20login", status_code=302)
-    s = slugify(slug or (id_title or en_title or "page"))
-    page = Page(slug=s, template=template, is_published=(is_published == "on"))
+
+    lang = getattr(request.state, "lang", "id")
+    i18n = DBI18n(db, lang)
+    footer_data = get_footer_data(db, lang)
+
+    submitted_slug = (slug or "").strip()
+    desired_source = (
+        submitted_slug or id_title or en_title or "page"
+    )
+    normalized_slug = _normalize_page_slug(desired_source)
+
+    if _page_slug_exists(db, normalized_slug):
+        translations = {
+            "id": {
+                "title": id_title.strip(),
+                "excerpt": id_excerpt,
+                "body": id_body,
+            },
+            "en": {
+                "title": en_title.strip(),
+                "excerpt": en_excerpt,
+                "body": en_body,
+            },
+            "ar": {
+                "title": ar_title.strip(),
+                "excerpt": ar_excerpt,
+                "body": ar_body,
+            },
+        }
+        page_data = {
+            "slug": submitted_slug,
+            "template": template,
+            "is_published": is_published == "on",
+        }
+        return _build_page_form_context(
+            request,
+            lang=lang,
+            i18n=i18n,
+            footer_data=footer_data,
+            mode="create",
+            page_data=page_data,
+            translations=translations,
+            error=f"Slug '{normalized_slug}' sudah digunakan. Gunakan slug lain.",
+        )
+
+    page = Page(
+        slug=normalized_slug, template=template, is_published=(is_published == "on")
+    )
     db.add(page)
     db.flush()
 
@@ -294,7 +382,56 @@ async def pages_edit(
     page = db.get(Page, page_id)
     if not page:
         return RedirectResponse(url="/admin/pages?msg=Not%20found", status_code=302)
-    page.slug = slugify(slug or page.slug)
+    lang = getattr(request.state, "lang", "id")
+    i18n = DBI18n(db, lang)
+    footer_data = get_footer_data(db, lang)
+
+    submitted_slug = (slug or "").strip()
+    desired_source = (
+        submitted_slug
+        or id_title
+        or en_title
+        or page.slug
+        or "page"
+    )
+    normalized_slug = _normalize_page_slug(desired_source, fallback=page.slug or "page")
+
+    if _page_slug_exists(db, normalized_slug, exclude_page_id=page.id):
+        translations = {
+            "id": {
+                "title": id_title.strip(),
+                "excerpt": id_excerpt,
+                "body": id_body,
+            },
+            "en": {
+                "title": en_title.strip(),
+                "excerpt": en_excerpt,
+                "body": en_body,
+            },
+            "ar": {
+                "title": ar_title.strip(),
+                "excerpt": ar_excerpt,
+                "body": ar_body,
+            },
+        }
+        page_data = {
+            "id": page.id,
+            "slug": submitted_slug or page.slug,
+            "template": template,
+            "is_published": is_published == "on",
+        }
+        return _build_page_form_context(
+            request,
+            lang=lang,
+            i18n=i18n,
+            footer_data=footer_data,
+            mode="edit",
+            page_data=page_data,
+            translations=translations,
+            error=f"Slug '{normalized_slug}' sudah digunakan. Gunakan slug lain.",
+        )
+
+    page.slug = normalized_slug
     page.template = template
     page.is_published = is_published == "on"
 
