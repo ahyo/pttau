@@ -26,6 +26,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from app.services.i18n_db import DBI18n
 from app.middleware.context import ContextInjectorMiddleware
 
+# bahasa
 VALID_LANGS = {"id", "en", "ar"}
 
 os.makedirs("app/logs", exist_ok=True)
