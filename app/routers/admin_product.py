@@ -121,12 +121,12 @@ async def admin_product_create(
     product_slug = slugify(slug or id_name or en_name or "product")
 
     media_path = _save_upload(image_file)
-
+    cleaned_image_url = (image_url or "").strip()
     product = Product(
         slug=product_slug,
         price=_parse_decimal(price),
         stock=stock,
-        image_url=(media_path or image_url.strip() or None),
+        image_url=media_path or (cleaned_image_url or None),
         is_active=is_active == "on",
     )
     db.add(product)
