@@ -1,0 +1,60 @@
+{% extends "layouts/base.html" %}
+{% block title %}Riwayat Pesanan — {{ settings.APP_NAME }}{% endblock %}
+{% block content %}
+<section class="py-5 bg-light">
+  <div class="container">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+      <div>
+        <h1 class="h4 mb-1">Riwayat Pesanan</h1>
+        <p class="text-muted mb-0">Lihat status pesanan yang pernah Anda ajukan.</p>
+      </div>
+      <a class="btn btn-outline-secondary btn-sm mt-3 mt-md-0" href="/catalog">Kembali Belanja</a>
+    </div>
+
+    {% if orders %}
+    <div class="table-responsive shadow-sm rounded bg-white">
+      <table class="table table-hover mb-0">
+        <thead class="table-light">
+          <tr>
+            <th scope="col">Order #</th>
+            <th scope="col">Tanggal</th>
+            <th scope="col">Status</th>
+            <th scope="col">Rincian</th>
+            <th scope="col" class="text-end">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for entry in orders %}
+          {% set order = entry.order %}
+          <tr>
+            <td class="fw-semibold">#{{ order.id }}</td>
+            <td>{{ order.created_at.strftime("%d %b %Y %H:%M") if order.created_at else "-" }}</td>
+            <td>
+              <span class="badge bg-{% if order.status == 'completed' %}success{% elif order.status == 'cancelled' %}danger{% else %}warning text-dark{% endif %}">
+                {{ order.status|capitalize }}
+              </span>
+            </td>
+            <td>
+              <ul class="list-unstyled mb-0 small">
+                {% for item in entry.line_items %}
+                <li class="mb-1">
+                  <div class="fw-semibold">{{ item.name }}</div>
+                  <div class="text-muted">Qty {{ item.quantity }} &times; Rp{{ '{:,.2f}'.format(item.unit_price) }}</div>
+                </li>
+                {% endfor %}
+              </ul>
+            </td>
+            <td class="text-end fw-semibold">Rp{{ '{:,.2f}'.format(entry.total) }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+      Belum ada riwayat pesanan. Selesaikan checkout untuk melihat pesanan di sini.
+    </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

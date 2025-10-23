@@ -7,8 +7,9 @@ from app.services.i18n_db import DBI18n
 from slugify import slugify
 
 from app.db import get_db
-from app.deps import verify_password, get_session_admin
+from app.deps import verify_password, get_session_admin, hash_password
 from app.models.page import Page, PageTR
+from app.models.user import User
 from app.ui import get_footer_data, templates, common_ctx
 
 router = APIRouter(tags=["admin"])
@@ -70,6 +71,77 @@ async def admin_login(
 async def admin_logout(request: Request):
     request.session.pop("admin", None)
     return RedirectResponse(url="/admin/login?msg=Logged%20out", status_code=302)
+
+
+@router.get("/admin/password", response_class=HTMLResponse)
+async def admin_password_form(request: Request, db: Session = Depends(get_db)):
+    if not require_admin(request):
+        return RedirectResponse(url="/admin/login?msg=Please%20login", status_code=302)
+
+    lang = getattr(request.state, "lang", "id")
+    i18n = DBI18n(db, lang)
+
+    return templates.TemplateResponse(
+        "admin/change_password.html",
+        common_ctx(
+            request,
+            {
+                "lang": lang,
+                "i18n": i18n,
+                "msg": request.query_params.get("msg", ""),
+                "err": request.query_params.get("err", ""),
+            },
+        ),
+    )
+
+
+@router.post("/admin/password")
+async def admin_password_update(
+    request: Request,
+    db: Session = Depends(get_db),
+    current_password: str = Form(...),
+    new_password: str = Form(...),
+    confirm_password: str = Form(...),
+):
+    if not require_admin(request):
+        return RedirectResponse(url="/admin/login?msg=Please%20login", status_code=302)
+
+    admin_session = request.session.get("admin") or {}
+    user_id = admin_session.get("id")
+    user = db.get(User, user_id) if user_id else None
+    if not user:
+        request.session.pop("admin", None)
+        return RedirectResponse(url="/admin/login?msg=Please%20login", status_code=302)
+
+    if not verify_password(current_password, user.password_hash):
+        return RedirectResponse(
+            url="/admin/password?err=Password%20lama%20salah", status_code=302
+        )
+
+    if len(new_password) < 6 or len(new_password) > 128:
+        return RedirectResponse(
+            url="/admin/password?err=Password%20baru%20harus%206-128%20karakter",
+            status_code=302,
+        )
+
+    if new_password != confirm_password:
+        return RedirectResponse(
+            url="/admin/password?err=Konfirmasi%20password%20tidak%20sesuai",
+            status_code=302,
+        )
+
+    if verify_password(new_password, user.password_hash):
+        return RedirectResponse(
+            url="/admin/password?err=Password%20baru%20tidak%20boleh%20sama",
+            status_code=302,
+        )
+
+    user.password_hash = hash_password(new_password)
+    db.commit()
+
+    return RedirectResponse(
+        url="/admin/password?msg=Password%20berhasil%20diperbarui", status_code=302
+    )
 
 
 @router.get("/admin", response_class=HTMLResponse)

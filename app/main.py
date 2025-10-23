@@ -12,6 +12,7 @@ from app.routers import (
     admin_footer,
     admin_menu,
     admin_product,
+    admin_order,
     auth,
     catalog,
     cart,
@@ -112,3 +113,4 @@ app.include_router(admin_carousel.router)
 app.include_router(admin_footer.router)
 app.include_router(admin_menu.router)
 app.include_router(admin_product.router)
+app.include_router(admin_order.router)
