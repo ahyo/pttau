@@ -22,6 +22,10 @@
               </a>
             </div>
 
+            {% if error %}
+            <div class="alert alert-danger">{{ error }}</div>
+            {% endif %}
+
             <form method="post" action="{{ action }}" enctype="multipart/form-data">
               <div class="row g-3">
                 <div class="col-md-6">

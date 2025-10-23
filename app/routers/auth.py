@@ -43,6 +43,10 @@ async def register_user(
     username = username.strip().lower()
     if len(username) < 3 or len(password) < 6:
         return RedirectResponse("/register?msg=Invalid%20credentials", status_code=302)
+    if len(password.encode("utf-8")) > 72:
+        return RedirectResponse(
+            "/register?msg=Password%20terlalu%20panjang", status_code=302
+        )
 
     if password != confirm_password:
         return RedirectResponse("/register?msg=Password%20mismatch", status_code=302)

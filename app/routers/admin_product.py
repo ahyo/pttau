@@ -95,21 +95,18 @@ def _set_translation(db: Session, product: Product, lang: str, data: dict):
         )
 
 
-def _generate_unique_slug(
-    db: Session, desired_slug: str, current_product_id: int | None = None
-) -> str:
-    base_slug = slugify(desired_slug or "") or "product"
-    candidate = base_slug
-    counter = 1
+def _normalize_slug(value: str) -> str:
+    normalized = slugify(value or "")
+    return normalized or "product"
 
-    while True:
-        stmt = select(Product.id).where(Product.slug == candidate)
-        if current_product_id is not None:
-            stmt = stmt.where(Product.id != current_product_id)
-        if not db.execute(stmt).scalar_one_or_none():
-            return candidate
-        candidate = f"{base_slug}-{counter}"
-        counter += 1
+
+def _slug_exists(
+    db: Session, slug: str, exclude_product_id: int | None = None
+) -> bool:
+    stmt = select(Product.id).where(Product.slug == slug)
+    if exclude_product_id is not None:
+        stmt = stmt.where(Product.id != exclude_product_id)
+    return db.execute(stmt).scalar_one_or_none() is not None
 
 
 @router.post("/admin/products/create")
@@ -141,7 +138,24 @@ async def admin_product_create(
         or (en_name or "").strip()
         or "product"
     )
-    product_slug = _generate_unique_slug(db, desired_slug)
+    product_slug = _normalize_slug(desired_slug)
+    if _slug_exists(db, product_slug):
+        lang = getattr(request.state, "lang", "id")
+        i18n = DBI18n(db, lang)
+        return templates.TemplateResponse(
+            "admin/products/form.html",
+            common_ctx(
+                request,
+                {
+                    "mode": "create",
+                    "i18n": i18n,
+                    "lang": lang,
+                    "translations": {},
+                    "error": "Slug sudah digunakan. Gunakan slug lain.",
+                },
+            ),
+            status_code=400,
+        )
 
     media_path = _save_upload(image_file)
     cleaned_image_url = (image_url or "").strip()
@@ -249,6 +263,9 @@ async def admin_product_edit(
     if not product:
         return RedirectResponse("/admin/products?msg=Not%20found", status_code=302)
 
+    translations = {tr.lang: tr for tr in product.translations}
+    lang = getattr(request.state, "lang", "id")
+
     desired_slug = (
         (slug or "").strip()
         or product.slug
@@ -256,7 +273,25 @@ async def admin_product_edit(
         or (en_name or "").strip()
         or "product"
     )
-    product.slug = _generate_unique_slug(db, desired_slug, current_product_id=product.id)
+    new_slug = _normalize_slug(desired_slug)
+    if _slug_exists(db, new_slug, exclude_product_id=product.id):
+        i18n = DBI18n(db, lang)
+        return templates.TemplateResponse(
+            "admin/products/form.html",
+            common_ctx(
+                request,
+                {
+                    "mode": "edit",
+                    "product": product,
+                    "translations": translations,
+                    "i18n": i18n,
+                    "lang": lang,
+                    "error": "Slug sudah digunakan. Gunakan slug lain.",
+                },
+            ),
+            status_code=400,
+        )
+    product.slug = new_slug
     product.price = _parse_decimal(price)
     product.stock = stock
     media_path = _save_upload(image_file)
