@@ -95,6 +95,23 @@ def _set_translation(db: Session, product: Product, lang: str, data: dict):
         )
 
 
+def _generate_unique_slug(
+    db: Session, desired_slug: str, current_product_id: int | None = None
+) -> str:
+    base_slug = slugify(desired_slug or "") or "product"
+    candidate = base_slug
+    counter = 1
+
+    while True:
+        stmt = select(Product.id).where(Product.slug == candidate)
+        if current_product_id is not None:
+            stmt = stmt.where(Product.id != current_product_id)
+        if not db.execute(stmt).scalar_one_or_none():
+            return candidate
+        candidate = f"{base_slug}-{counter}"
+        counter += 1
+
+
 @router.post("/admin/products/create")
 async def admin_product_create(
     request: Request,
@@ -112,13 +129,19 @@ async def admin_product_create(
     en_short_description: str = Form(""),
     en_description: str = Form(""),
     ar_name: str = Form(""),
-    ar_short_description: str = Form(""),
-    ar_description: str = Form(""),
+        ar_short_description: str = Form(""),
+        ar_description: str = Form(""),
 ):
     if not require_admin(request):
         return RedirectResponse("/admin/login?msg=Please%20login", status_code=302)
 
-    product_slug = slugify(slug or id_name or en_name or "product")
+    desired_slug = (
+        (slug or "").strip()
+        or (id_name or "").strip()
+        or (en_name or "").strip()
+        or "product"
+    )
+    product_slug = _generate_unique_slug(db, desired_slug)
 
     media_path = _save_upload(image_file)
     cleaned_image_url = (image_url or "").strip()
@@ -226,7 +249,14 @@ async def admin_product_edit(
     if not product:
         return RedirectResponse("/admin/products?msg=Not%20found", status_code=302)
 
-    product.slug = slugify(slug or product.slug or id_name or en_name)
+    desired_slug = (
+        (slug or "").strip()
+        or product.slug
+        or (id_name or "").strip()
+        or (en_name or "").strip()
+        or "product"
+    )
+    product.slug = _generate_unique_slug(db, desired_slug, current_product_id=product.id)
     product.price = _parse_decimal(price)
     product.stock = stock
     media_path = _save_upload(image_file)
