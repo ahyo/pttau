@@ -230,7 +230,11 @@ async def admin_product_edit(
     product.price = _parse_decimal(price)
     product.stock = stock
     media_path = _save_upload(image_file)
-    product.image_url = media_path or (image_url.strip() or None)
+    cleaned_image_url = (image_url or "").strip()
+    if media_path:
+        product.image_url = media_path
+    elif cleaned_image_url:
+        product.image_url = cleaned_image_url
     product.is_active = is_active == "on"
 
     _set_translation(
@@ -294,4 +298,3 @@ def _save_upload(upload: UploadFile | None) -> str | None:
     with open(path, "wb") as out:
         out.write(upload.file.read())
     return "/" + path.split("/", 1)[1]
-
