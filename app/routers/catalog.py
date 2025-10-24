@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session, selectinload
 from app.config import settings
 from app.db import get_db
 from app.models.product import Product, ProductTR
+from app.services.content import get_page_by_slug, get_page_tr
 from app.services.i18n_db import DBI18n
 from app.ui import common_ctx, templates
 
@@ -27,6 +28,10 @@ async def catalog_list(request: Request, db: Session = Depends(get_db)):
     lang = getattr(request.state, "lang", settings.DEFAULT_LANG)
     i18n = DBI18n(db, lang)
 
+    page = get_page_by_slug(db, "catalog")
+    if not page:
+        raise HTTPException(404)
+    tr = get_page_tr(db, page.id, lang)
     msg = request.query_params.get("msg", "")
 
     products = (
@@ -54,6 +59,7 @@ async def catalog_list(request: Request, db: Session = Depends(get_db)):
                 "i18n": i18n,
                 "products": product_cards,
                 "msg": msg,
+                "tr": tr,
             },
         ),
     )
