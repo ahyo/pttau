@@ -68,7 +68,13 @@ async def home(request: Request, db: Session = Depends(get_db)):
 # custom form
 @router.get("/contact", response_class=HTMLResponse)
 async def contact(request: Request, db: Session = Depends(get_db)):
-    return templates.TemplateResponse("site/contact.html", {"request": request})
+    return templates.TemplateResponse(
+        "site/contact.html",
+        common_ctx(
+            request,
+            {},
+        ),
+    )
 
 
 # B) Generic: semua slug lain di-handle di sini (/p/{slug})
