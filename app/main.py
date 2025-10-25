@@ -25,6 +25,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.middleware.context import ContextInjectorMiddleware
 
+# suka error
 VALID_LANGS = {"id", "en", "ar"}
 
 os.makedirs("app/logs", exist_ok=True)
@@ -101,6 +102,7 @@ async def set_lang(code: str, request: Request):
     response.headers["Location"] = referer
     response.set_cookie("lang", lang, max_age=60 * 60 * 24 * 365, samesite="lax")
     return response
+
 
 app.include_router(auth.router)
 app.include_router(catalog.router)
