@@ -27,11 +27,34 @@
     </button>
     <div class="collapse navbar-collapse" id="nav">
       <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-        {# helper kecil untuk render anak #} {% macro render_item(item) %} {% if
-        item.children and item.children|length > 0 %}
-        <li class="nav-item dropdown">
+        {% set current_path = request.url.path %}
+        {% if current_path != '/' %}
+          {% set current_path = current_path.rstrip('/') %}
+        {% endif %}
+        {% macro render_item(item, current_path) %}
+        {% set ns = namespace(active=false) %}
+        {% set item_url = item.url or '' %}
+        {% if item_url %}
+          {% set normalized_item = item_url if item_url == '/' else item_url.rstrip('/') %}
+          {% if current_path == normalized_item or (normalized_item != '/' and current_path.startswith(normalized_item ~ '/')) %}
+            {% set ns.active = True %}
+          {% endif %}
+        {% endif %}
+        {% if item.children %}
+          {% for c in item.children %}
+            {% set child_url = c.url or '' %}
+            {% if child_url %}
+              {% set normalized_child = child_url if child_url == '/' else child_url.rstrip('/') %}
+              {% if current_path == normalized_child or (normalized_child != '/' and current_path.startswith(normalized_child ~ '/')) %}
+                {% set ns.active = True %}
+              {% endif %}
+            {% endif %}
+          {% endfor %}
+        {% endif %}
+        {% if item.children and item.children|length > 0 %}
+        <li class="nav-item dropdown {{ 'active' if ns.active }}">
           <a
-            class="nav-link dropdown-toggle text-uppercase"
+            class="nav-link dropdown-toggle text-uppercase {{ 'active' if ns.active }}"
             style="color: #fff"
             href="#"
             role="button"
@@ -40,17 +63,21 @@
             {{ item.label }}
           </a>
           <ul class="dropdown-menu">
-            {% for c in item.children %} {% if c.children and c.children|length
-            > 0 %}
+            {% for c in item.children %}
+            {% set normalized_child = (c.url if c.url == '/' else c.url.rstrip('/')) if c.url else None %}
+            {% set child_active = normalized_child and (current_path == normalized_child or (normalized_child != '/' and current_path.startswith(normalized_child ~ '/'))) %}
+            {% if c.children and c.children|length > 0 %}
             <li class="dropdown-submenu">
               <a class="dropdown-item dropdown-toggle" href="#"
                 >{{ c.label }}</a
               >
               <ul class="dropdown-menu">
                 {% for cc in c.children %}
+                {% set normalized_grand = (cc.url if cc.url == '/' else cc.url.rstrip('/')) if cc.url else None %}
+                {% set grand_active = normalized_grand and (current_path == normalized_grand or (normalized_grand != '/' and current_path.startswith(normalized_grand ~ '/'))) %}
                 <li>
                   <a
-                    class="dropdown-item"
+                    class="dropdown-item {{ 'active' if grand_active }}"
                     href="{{ cc.url }}"
                     {%
                     if
@@ -63,12 +90,12 @@
                   >
                 </li>
                 {% endfor %}
-              </ul>
-            </li>
+            </ul>
+          </li>
             {% else %}
             <li>
               <a
-                class="dropdown-item"
+                class="dropdown-item {{ 'active' if child_active }}"
                 href="{{ c.url }}"
                 {%
                 if
@@ -84,9 +111,9 @@
           </ul>
         </li>
         {% else %}
-        <li class="nav-item">
+        <li class="nav-item {{ 'active' if ns.active }}">
           <a
-            class="nav-link text-white text-uppercase"
+            class="nav-link text-white text-uppercase {{ 'active' if ns.active }}"
             href="{{ item.url }}"
             {%
             if
@@ -100,7 +127,7 @@
           </a>
         </li>
         {% endif %} {% endmacro %} {# render semua root items dari DB #} {% for
-        it in header_menu %} {{ render_item(it) }} {% endfor %}
+        it in header_menu %} {{ render_item(it, current_path) }} {% endfor %}
 
         <li class="nav-item">
           <a class="nav-link text-white text-uppercase position-relative" href="/cart">

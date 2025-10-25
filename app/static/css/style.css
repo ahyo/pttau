@@ -3,6 +3,56 @@ body {
     padding-top: 0;
 }
 
+.navbar-nav .nav-link {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    padding: 0.85rem 1.1rem;
+    color: #f8f9fa;
+    transition: background-color .2s ease, color .2s ease, box-shadow .2s ease;
+    position: relative;
+    margin: 0 0.35rem;
+}
+
+.navbar-nav .nav-item {
+    position: relative;
+}
+
+.navbar-nav .nav-link::before {
+    content: "";
+    position: absolute;
+    top: -0.55rem;
+    bottom: -0.55rem;
+    left: 0;
+    right: 0;
+    background: rgba(255, 255, 255, 0.5);
+    opacity: 0;
+    transform: scaleY(0.6);
+    transform-origin: center;
+    transition: opacity .2s ease, transform .2s ease;
+    border-radius: 0;
+    z-index: -1;
+}
+
+.navbar-nav .nav-link:hover::before,
+.navbar-nav .nav-link.active::before,
+.navbar-nav .nav-item.show > .nav-link::before {
+    opacity: 1;
+    transform: scaleY(1);
+}
+
+.navbar-nav .nav-link:hover,
+.navbar-nav .nav-link.active,
+.navbar-nav .nav-item.show > .nav-link {
+    color: #ffffff;
+}
+
+.dropdown-menu .dropdown-item.active,
+.dropdown-menu .dropdown-item:active {
+    background-color: var(--brand);
+    color: #ffffff;
+}
+
 section:not(.hero-carousel) {
     scroll-margin-top: 80px;
 }
