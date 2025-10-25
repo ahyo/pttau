@@ -19,9 +19,7 @@ block content %}
             <option value="">(Root)</option>
             {% for p in parents %}
             <option value="{{ p.id }}">
-              {{
-              (p.translations|selectattr('lang','equalto','id')|list|first).label
-              if p.translations else ('#' ~ p.id) }}
+              {{ p.label }}
             </option>
             {% endfor %}
           </select>
@@ -100,19 +98,9 @@ block content %}
           </div>
         </div>
 
-        <!-- label multibahasa -->
-        <div class="col-12"><hr /></div>
-        <div class="col-md-4">
-          <label class="form-label">Label (ID)</label>
-          <input name="id_label" class="form-control" />
-        </div>
-        <div class="col-md-4">
-          <label class="form-label">Label (EN)</label>
-          <input name="en_label" class="form-control" />
-        </div>
-        <div class="col-md-4">
-          <label class="form-label">Label (AR)</label>
-          <input name="ar_label" class="form-control" dir="rtl" />
+        <div class="col-md-6">
+          <label class="form-label">Label</label>
+          <input name="label" class="form-control" required />
         </div>
 
         <div class="col-12 mt-2">
@@ -134,7 +122,7 @@ block content %}
           <th>Active</th>
           <th>Admin</th>
           <th>URL</th>
-          <th>Label (ID/EN/AR)</th>
+          <th>Label</th>
           <th>Aksi</th>
         </tr>
       </thead>
@@ -148,11 +136,7 @@ block content %}
           <td>{{ 'Yes' if it.active else 'No' }}</td>
           <td>{{ 'Yes' if it.requires_admin else 'No' }}</td>
           <td class="text-truncate" style="max-width: 260px">{{ it.url }}</td>
-          <td>
-            <div><strong>ID:</strong> {{ it.label_id }}</div>
-            <div><strong>EN:</strong> {{ it.label_en }}</div>
-            <div dir="rtl"><strong>AR:</strong> {{ it.label_ar }}</div>
-          </td>
+          <td>{{ it.label }}</td>
           <td class="text-nowrap">
             <a
               class="btn btn-sm btn-outline-primary"

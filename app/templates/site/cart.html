@@ -39,21 +39,21 @@
                 {% for row in items %}
                 {% set item = row.item %}
                 {% set product = row.product %}
-                {% set tr = row.translation %}
+                {% set display_name = row.name or product.slug %}
                 <tr>
                   <td>
                     <div class="d-flex align-items-center gap-3">
                       <div class="ratio ratio-1x1" style="width: 64px;">
                         {% if product.image_url %}
-                        <img src="{{ product.image_url }}" class="img-fluid rounded" alt="{{ tr.name if tr else product.slug }}" />
+                        <img src="{{ product.image_url }}" class="img-fluid rounded" alt="{{ display_name }}" />
                         {% else %}
                         <div class="bg-secondary bg-opacity-10 rounded d-flex align-items-center justify-content-center text-secondary fw-semibold">
-                          {{ (tr.name if tr else product.slug)[:1]|upper }}
+                          {{ display_name[:1]|upper }}
                         </div>
                         {% endif %}
                       </div>
                       <div>
-                        <div class="fw-semibold">{{ tr.name if tr else product.slug }}</div>
+                        <div class="fw-semibold">{{ display_name }}</div>
                         <div class="text-muted small">/{{ product.slug }}</div>
                       </div>
                     </div>

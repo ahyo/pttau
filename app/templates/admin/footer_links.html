@@ -3,9 +3,7 @@
 <div class="container py-4">
   <h1 class="h5 mb-3">
     Footer Links —
-    <span class="text-secondary"
-      >{{ section.id }} / {{ section.code or 'Tanpa Kode' }}</span
-    >
+    <span class="text-secondary">{{ section.id }} / {{ section.name }}</span>
   </h1>
 
   <!-- FORM TAMBAH LINK -->
@@ -41,26 +39,13 @@
           />
         </div>
         <div class="col-md-4">
-          <div class="input-group">
-            <input
-              type="text"
-              name="id_label"
-              class="form-control"
-              placeholder="Label (ID)"
-            />
-            <input
-              type="text"
-              name="en_label"
-              class="form-control"
-              placeholder="Label (EN)"
-            />
-            <input
-              type="text"
-              name="ar_label"
-              class="form-control"
-              placeholder="Label (AR)"
-            />
-          </div>
+          <input
+            type="text"
+            name="label"
+            class="form-control"
+            placeholder="Label"
+            required
+          />
         </div>
       </div>
     </div>
@@ -79,9 +64,7 @@
           <th style="width: 15%">Icon</th>
           <th style="width: 30%">URL</th>
           <th style="width: 10%">Order</th>
-          <th>Label (ID)</th>
-          <th>Label (EN)</th>
-          <th>Label (AR)</th>
+          <th>Label</th>
           <th style="width: 10%">Status</th>
           <th style="width: 10%">Aksi</th>
         </tr>
@@ -96,15 +79,7 @@
           </td>
           <td><a href="{{ l.url }}" target="_blank">{{ l.url }}</a></td>
           <td>{{ l.sort_order }}</td>
-
-          {% set id_tr = (l.translations | selectattr("lang","equalto","id") |
-          list | first) %} {% set en_tr = (l.translations |
-          selectattr("lang","equalto","en") | list | first) %} {% set ar_tr =
-          (l.translations | selectattr("lang","equalto","ar") | list | first) %}
-
-          <td>{{ id_tr.label if id_tr else '' }}</td>
-          <td>{{ en_tr.label if en_tr else '' }}</td>
-          <td>{{ ar_tr.label if ar_tr else '' }}</td>
+          <td>{{ l.label }}</td>
 
           <td>
             {% if l.is_active %}

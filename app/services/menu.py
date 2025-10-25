@@ -1,5 +1,5 @@
 from sqlalchemy import select
-from app.models.menu import MenuItem, MenuItemTR
+from app.models.menu import MenuItem
 
 
 def get_menu_tree(db, lang: str, position: str = "header", admin_logged: bool = False):
@@ -23,11 +23,6 @@ def get_menu_tree(db, lang: str, position: str = "header", admin_logged: bool = 
     if not admin_logged:
         items = [it for it in items if not it.requires_admin]
 
-    # ambil label sesuai lang (fallback ke en/id)
-    def label_for(item):
-        trs = {tr.lang: tr.label for tr in item.translations}
-        return trs.get(lang) or trs.get("en") or trs.get("id") or "Menu"
-
     # map children
     by_parent = {}
     for it in items:
@@ -36,7 +31,7 @@ def get_menu_tree(db, lang: str, position: str = "header", admin_logged: bool = 
     def build(node):
         return {
             "id": node.id,
-            "label": label_for(node),
+            "label": node.label or "Menu",
             "url": node.url,
             "is_external": node.is_external,
             "target": node.target or ("_blank" if node.is_external else "_self"),

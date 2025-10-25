@@ -4,15 +4,6 @@ endblock %} {% block content %}
   <h1 class="h5 mb-3">Edit Section #{{ section.id }}</h1>
   <form method="post">
     <div class="row g-3">
-      <div class="col-md-3">
-        <label class="form-label">Code</label>
-        <input
-          name="code"
-          class="form-control"
-          value="{{ section.code or '' }}"
-          placeholder="optional"
-        />
-      </div>
       <div class="col-md-2">
         <label class="form-label">Sort Order</label>
         <input
@@ -33,32 +24,14 @@ endblock %} {% block content %}
 
     <hr class="my-4" />
 
-    {% set id_tr = trs.get('id') %} {% set en_tr = trs.get('en') %} {% set ar_tr
-    = trs.get('ar') %}
-
     <div class="row g-3">
-      <div class="col-md-4">
-        <label class="form-label">Name (ID)</label>
+      <div class="col-md-6">
+        <label class="form-label">Nama Section</label>
         <input
-          name="id_name"
+          name="name"
           class="form-control"
-          value="{{ id_tr.name if id_tr else '' }}"
-        />
-      </div>
-      <div class="col-md-4">
-        <label class="form-label">Name (EN)</label>
-        <input
-          name="en_name"
-          class="form-control"
-          value="{{ en_tr.name if en_tr else '' }}"
-        />
-      </div>
-      <div class="col-md-4">
-        <label class="form-label">Name (AR)</label>
-        <input
-          name="ar_name"
-          class="form-control"
-          value="{{ ar_tr.name if ar_tr else '' }}"
+          value="{{ section.name }}"
+          required
         />
       </div>
     </div>

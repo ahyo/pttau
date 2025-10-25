@@ -1,16 +1,14 @@
 from fastapi import APIRouter, Request, Depends, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
-from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from sqlalchemy import select
-from app.services.i18n_db import DBI18n
 from slugify import slugify
 
 from app.db import get_db
-from app.deps import verify_password, get_session_admin, hash_password
-from app.models.page import Page, PageTR
+from app.deps import verify_password, hash_password
+from app.models.page import Page
 from app.models.user import User
-from app.ui import get_footer_data, templates, common_ctx
+from app.ui import templates, common_ctx
 
 router = APIRouter(tags=["admin"])
 
@@ -33,42 +31,31 @@ def _page_slug_exists(
     return db.execute(stmt).scalar_one_or_none() is not None
 
 
-def _build_page_form_context(
+def _page_form_response(
     request: Request,
     *,
-    lang: str,
-    i18n,
-    footer_data,
     mode: str,
-    page_data: dict | None,
-    translations: dict[str, dict],
+    page: Page | None = None,
+    form_data: dict | None = None,
     error: str | None = None,
+    status_code: int | None = None,
 ):
+    ctx = {
+        "mode": mode,
+        "page": page,
+        "form_data": form_data or {},
+        "error": error,
+    }
     return templates.TemplateResponse(
         "admin/form_page.html",
-        common_ctx(
-            request,
-            {
-                "mode": mode,
-                "page": page_data,
-                "trs": translations,
-                "lang": lang,
-                "i18n": i18n,
-                "footer_sections": footer_data,
-                "error": error,
-            },
-        ),
-        status_code=400 if error else 200,
+        common_ctx(request, ctx),
+        status_code=status_code or (400 if error else 200),
     )
 
 @router.get("/admin/login", response_class=HTMLResponse)
-async def admin_login_page(
-    request: Request, msg: str = "", db: Session = Depends(get_db)
-):
-    lang = getattr(request.state, "lang", "id")
-    i18n = DBI18n(db, lang)
+async def admin_login_page(request: Request, msg: str = ""):
     return templates.TemplateResponse(
-        "admin/login.html", {"request": request, "msg": msg, "i18n": i18n, "lang": lang}
+        "admin/login.html", {"request": request, "msg": msg}
     )
 
 
@@ -120,16 +107,11 @@ async def admin_password_form(request: Request, db: Session = Depends(get_db)):
     if not require_admin(request):
         return RedirectResponse(url="/admin/login?msg=Please%20login", status_code=302)
 
-    lang = getattr(request.state, "lang", "id")
-    i18n = DBI18n(db, lang)
-
     return templates.TemplateResponse(
         "admin/change_password.html",
         common_ctx(
             request,
             {
-                "lang": lang,
-                "i18n": i18n,
                 "msg": request.query_params.get("msg", ""),
                 "err": request.query_params.get("err", ""),
             },
@@ -188,20 +170,15 @@ async def admin_password_update(
 
 @router.get("/admin", response_class=HTMLResponse)
 async def admin_dashboard(request: Request, db=Depends(get_db)):
-    lang = getattr(request.state, "lang", "id")
-    i18n = DBI18n(db, lang)
     if not require_admin(request):
         return RedirectResponse(url="/admin/login?msg=Please%20login", status_code=302)
     return templates.TemplateResponse(
-        "admin/dashboard.html", common_ctx(request, {"lang": lang, "i18n": i18n})
+        "admin/dashboard.html", common_ctx(request, {})
     )
 
 
 @router.get("/admin/pages", response_class=HTMLResponse)
 async def pages_list(request: Request, db: Session = Depends(get_db), q: str = ""):
-    lang = getattr(request.state, "lang", "id")
-    i18n = DBI18n(db, lang)
-    footer_data = get_footer_data(db, lang)
     if not require_admin(request):
         return RedirectResponse(url="/admin/login?msg=Please%20login", status_code=302)
     pages = db.query(Page).order_by(Page.id.desc()).all()
@@ -212,9 +189,6 @@ async def pages_list(request: Request, db: Session = Depends(get_db), q: str = "
             {
                 "pages": pages,
                 "q": q,
-                "lang": lang,
-                "i18n": i18n,
-                "footer_sections": footer_data,
             },
         ),
     )
@@ -222,9 +196,6 @@ async def pages_list(request: Request, db: Session = Depends(get_db), q: str = "
 
 @router.get("/admin/pages/create", response_class=HTMLResponse)
 async def pages_create_form(request: Request, db: Session = Depends(get_db)):
-    lang = getattr(request.state, "lang", "id")
-    i18n = DBI18n(db, lang)
-    footer_data = get_footer_data(db, lang)
     if not require_admin(request):
         return RedirectResponse(url="/admin/login?msg=Please%20login", status_code=302)
     return templates.TemplateResponse(
@@ -233,9 +204,6 @@ async def pages_create_form(request: Request, db: Session = Depends(get_db)):
             request,
             {
                 "mode": "create",
-                "lang": lang,
-                "i18n": i18n,
-                "footer_sections": footer_data,
             },
         ),
     )
@@ -248,84 +216,48 @@ async def pages_create(
     slug: str = Form(""),
     template: str = Form("about"),
     is_published: str = Form("on"),
-    id_title: str = Form(""),
-    id_excerpt: str = Form(""),
-    id_body: str = Form(""),
-    en_title: str = Form(""),
-    en_excerpt: str = Form(""),
-    en_body: str = Form(""),
-    ar_title: str = Form(""),
-    ar_excerpt: str = Form(""),
-    ar_body: str = Form(""),
+    title: str = Form(""),
+    excerpt: str = Form(""),
+    body: str = Form(""),
+    meta_title: str = Form(""),
+    meta_desc: str = Form(""),
 ):
     if not require_admin(request):
         return RedirectResponse(url="/admin/login?msg=Please%20login", status_code=302)
-
-    lang = getattr(request.state, "lang", "id")
-    i18n = DBI18n(db, lang)
-    footer_data = get_footer_data(db, lang)
-
     submitted_slug = (slug or "").strip()
-    desired_source = (
-        submitted_slug or id_title or en_title or "page"
-    )
+    desired_source = submitted_slug or title or "page"
     normalized_slug = _normalize_page_slug(desired_source)
 
     if _page_slug_exists(db, normalized_slug):
-        translations = {
-            "id": {
-                "title": id_title.strip(),
-                "excerpt": id_excerpt,
-                "body": id_body,
-            },
-            "en": {
-                "title": en_title.strip(),
-                "excerpt": en_excerpt,
-                "body": en_body,
-            },
-            "ar": {
-                "title": ar_title.strip(),
-                "excerpt": ar_excerpt,
-                "body": ar_body,
-            },
-        }
-        page_data = {
+        form_data = {
             "slug": submitted_slug,
             "template": template,
-            "is_published": is_published == "on",
+            "is_published": is_published,
+            "title": title,
+            "excerpt": excerpt,
+            "body": body,
+            "meta_title": meta_title,
+            "meta_desc": meta_desc,
         }
-        return _build_page_form_context(
+        return _page_form_response(
             request,
-            lang=lang,
-            i18n=i18n,
-            footer_data=footer_data,
             mode="create",
-            page_data=page_data,
-            translations=translations,
+            form_data=form_data,
             error=f"Slug '{normalized_slug}' sudah digunakan. Gunakan slug lain.",
+            status_code=400,
         )
 
     page = Page(
-        slug=normalized_slug, template=template, is_published=(is_published == "on")
+        slug=normalized_slug,
+        template=template,
+        is_published=(is_published == "on"),
+        title=title.strip() or normalized_slug.replace("-", " ").title(),
+        excerpt=excerpt.strip() or None,
+        body=body,
+        meta_title=meta_title.strip() or None,
+        meta_desc=meta_desc.strip() or None,
     )
     db.add(page)
-    db.flush()
-
-    def tr(lang, title, excerpt, body):
-        if any([title, excerpt, body]):
-            db.add(
-                PageTR(
-                    page_id=page.id,
-                    lang=lang,
-                    title=title.strip(),
-                    excerpt=excerpt,
-                    body=body,
-                )
-            )
-
-    tr("id", id_title, id_excerpt, id_body)
-    tr("en", en_title, en_excerpt, en_body)
-    tr("ar", ar_title, ar_excerpt, ar_body)
     db.commit()
     return RedirectResponse(url="/admin/pages", status_code=302)
 
@@ -334,29 +266,12 @@ async def pages_create(
 async def pages_edit_form(
     page_id: int, request: Request, db: Session = Depends(get_db)
 ):
-    lang = getattr(request.state, "lang", "id")
-    i18n = DBI18n(db, lang)
-    footer_data = get_footer_data(db, lang)
     if not require_admin(request):
         return RedirectResponse(url="/admin/login?msg=Please%20login", status_code=302)
     page = db.get(Page, page_id)
     if not page:
         return RedirectResponse(url="/admin/pages?msg=Not%20found", status_code=302)
-    trs = {tr.lang: tr for tr in page.translations}
-    return templates.TemplateResponse(
-        "admin/form_page.html",
-        common_ctx(
-            request,
-            {
-                "mode": "edit",
-                "page": page,
-                "trs": trs,
-                "lang": lang,
-                "i18n": i18n,
-                "footer_sections": footer_data,
-            },
-        ),
-    )
+    return _page_form_response(request, mode="edit", page=page)
 
 
 @router.post("/admin/pages/{page_id}/edit")
@@ -367,99 +282,51 @@ async def pages_edit(
     slug: str = Form(""),
     template: str = Form("about"),
     is_published: str = Form("off"),
-    id_title: str = Form(""),
-    id_excerpt: str = Form(""),
-    id_body: str = Form(""),
-    en_title: str = Form(""),
-    en_excerpt: str = Form(""),
-    en_body: str = Form(""),
-    ar_title: str = Form(""),
-    ar_excerpt: str = Form(""),
-    ar_body: str = Form(""),
+    title: str = Form(""),
+    excerpt: str = Form(""),
+    body: str = Form(""),
+    meta_title: str = Form(""),
+    meta_desc: str = Form(""),
 ):
     if not require_admin(request):
         return RedirectResponse(url="/admin/login?msg=Please%20login", status_code=302)
     page = db.get(Page, page_id)
     if not page:
         return RedirectResponse(url="/admin/pages?msg=Not%20found", status_code=302)
-    lang = getattr(request.state, "lang", "id")
-    i18n = DBI18n(db, lang)
-    footer_data = get_footer_data(db, lang)
-
     submitted_slug = (slug or "").strip()
-    desired_source = (
-        submitted_slug
-        or id_title
-        or en_title
-        or page.slug
-        or "page"
-    )
+    desired_source = submitted_slug or title or page.slug or "page"
     normalized_slug = _normalize_page_slug(desired_source, fallback=page.slug or "page")
 
     if _page_slug_exists(db, normalized_slug, exclude_page_id=page.id):
-        translations = {
-            "id": {
-                "title": id_title.strip(),
-                "excerpt": id_excerpt,
-                "body": id_body,
-            },
-            "en": {
-                "title": en_title.strip(),
-                "excerpt": en_excerpt,
-                "body": en_body,
-            },
-            "ar": {
-                "title": ar_title.strip(),
-                "excerpt": ar_excerpt,
-                "body": ar_body,
-            },
-        }
-        page_data = {
+        form_data = {
             "id": page.id,
             "slug": submitted_slug or page.slug,
             "template": template,
-            "is_published": is_published == "on",
+            "is_published": is_published,
+            "title": title,
+            "excerpt": excerpt,
+            "body": body,
+            "meta_title": meta_title,
+            "meta_desc": meta_desc,
         }
-        return _build_page_form_context(
+        return _page_form_response(
             request,
-            lang=lang,
-            i18n=i18n,
-            footer_data=footer_data,
             mode="edit",
-            page_data=page_data,
-            translations=translations,
+            page=page,
+            form_data=form_data,
             error=f"Slug '{normalized_slug}' sudah digunakan. Gunakan slug lain.",
+            status_code=400,
         )
 
     page.slug = normalized_slug
     page.template = template
     page.is_published = is_published == "on"
+    page.title = title.strip() or page.title or page.slug.title()
+    page.excerpt = excerpt.strip() or None
+    page.body = body
+    page.meta_title = meta_title.strip() or None
+    page.meta_desc = meta_desc.strip() or None
 
-    def upsert(lang, title, excerpt, body):
-        tr = (
-            db.query(PageTR)
-            .filter(PageTR.page_id == page.id, PageTR.lang == lang)
-            .one_or_none()
-        )
-        if tr:
-            tr.title = title.strip()
-            tr.excerpt = excerpt
-            tr.body = body
-        else:
-            if any([title, excerpt, body]):
-                db.add(
-                    PageTR(
-                        page_id=page.id,
-                        lang=lang,
-                        title=title.strip(),
-                        excerpt=excerpt,
-                        body=body,
-                    )
-                )
-
-    upsert("id", id_title, id_excerpt, id_body)
-    upsert("en", en_title, en_excerpt, en_body)
-    upsert("ar", ar_title, ar_excerpt, ar_body)
     db.commit()
     return RedirectResponse(url="/admin/pages", status_code=302)
 

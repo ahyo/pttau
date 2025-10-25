@@ -35,24 +35,20 @@
           <tbody>
             {% if products %}
             {% for product in products %}
-            {% set tr_lang = (product.translations | selectattr('lang', 'equalto', lang) | list | first) %}
-            {% set tr_en = (product.translations | selectattr('lang', 'equalto', 'en') | list | first) %}
-            {% set tr_id = (product.translations | selectattr('lang', 'equalto', 'id') | list | first) %}
-            {% set tr = tr_lang or tr_en or tr_id %}
             <tr>
               <td>
                 <div class="d-flex align-items-center gap-3">
                   <div class="ratio ratio-1x1" style="width: 64px;">
                     {% if product.image_url %}
-                    <img src="{{ product.image_url }}" class="img-fluid rounded" alt="{{ tr.name if tr else product.slug }}">
+                    <img src="{{ product.image_url }}" class="img-fluid rounded" alt="{{ product.name or product.slug }}">
                     {% else %}
                     <div class="bg-secondary bg-opacity-10 rounded d-flex align-items-center justify-content-center text-secondary fw-semibold">
-                      {{ (tr.name if tr else product.slug)[:1]|upper }}
+                      {{ (product.name if product.name else product.slug)[:1]|upper }}
                     </div>
                     {% endif %}
                   </div>
                   <div>
-                    <div class="fw-semibold">{{ tr.name if tr else product.slug }}</div>
+                    <div class="fw-semibold">{{ product.name or product.slug }}</div>
                     <div class="text-muted small">/{{ product.slug }}</div>
                   </div>
                 </div>

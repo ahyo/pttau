@@ -7,11 +7,9 @@ import os, shutil
 
 from app.db import get_db
 from app.config import settings
-from app.deps import get_session_admin
-from app.models.carousel import CarouselItem, CarouselItemTR
+from app.models.carousel import CarouselItem
 
-from app.services.i18n_db import DBI18n
-from app.ui import common_ctx, get_footer_data, templates
+from app.ui import templates
 
 router = APIRouter(tags=["admin"])
 
@@ -68,6 +66,7 @@ async def create_form(request: Request, db: Session = Depends(get_db)):
         {
             "request": request,
             "mode": "create",
+            "form_data": {},
         },
     )
 
@@ -82,19 +81,10 @@ async def create_item(
     # file upload
     media_file: UploadFile = File(None),
     poster_file: UploadFile = File(None),
-    # TR
-    id_title: str = Form(""),
-    id_subtitle: str = Form(""),
-    id_cta_text: str = Form(""),
-    id_cta_url: str = Form(""),
-    en_title: str = Form(""),
-    en_subtitle: str = Form(""),
-    en_cta_text: str = Form(""),
-    en_cta_url: str = Form(""),
-    ar_title: str = Form(""),
-    ar_subtitle: str = Form(""),
-    ar_cta_text: str = Form(""),
-    ar_cta_url: str = Form(""),
+    title: str = Form(""),
+    subtitle: str = Form(""),
+    cta_text: str = Form(""),
+    cta_url: str = Form(""),
 ):
     if not require_admin(request):
         return RedirectResponse(url="/admin/login?msg=Please%20login", status_code=302)
@@ -106,26 +96,12 @@ async def create_item(
         poster_path=poster_path,
         is_active=(is_active == "on"),
         sort_order=sort_order,
+        title=title.strip() or None,
+        subtitle=subtitle.strip() or None,
+        cta_text=cta_text.strip() or None,
+        cta_url=cta_url.strip() or None,
     )
     db.add(item)
-    db.flush()
-
-    def add_tr(lang, title, subtitle, cta_text, cta_url):
-        if any([title, subtitle, cta_text, cta_url]):
-            db.add(
-                CarouselItemTR(
-                    item_id=item.id,
-                    lang=lang,
-                    title=title,
-                    subtitle=subtitle,
-                    cta_text=cta_text,
-                    cta_url=cta_url,
-                )
-            )
-
-    add_tr("id", id_title, id_subtitle, id_cta_text, id_cta_url)
-    add_tr("en", en_title, en_subtitle, en_cta_text, en_cta_url)
-    add_tr("ar", ar_title, ar_subtitle, ar_cta_text, ar_cta_url)
 
     db.commit()
     return RedirectResponse(url="/admin/carousel", status_code=302)
@@ -140,16 +116,13 @@ async def edit_form(item_id: int, request: Request, db: Session = Depends(get_db
     if not item:
         return RedirectResponse("/admin/carousel?msg=Not%20found", 302)
 
-    # Map translasi aman
-    trs = {tr.lang: tr for tr in (item.translations or [])}
-    # print(trs["id"])
     return templates.TemplateResponse(
         "admin/carousel_form.html",
         {
             "request": request,
             "mode": "edit",
             "item": item,
-            "trs": trs,
+            "form_data": {},
         },
     )
 
@@ -167,19 +140,10 @@ async def edit_item(
     is_active: str = Form("off"),
     media_file: UploadFile = File(None),
     poster_file: UploadFile = File(None),
-    # --- jadikan opsional (None) ---
-    id_title: Optional[str] = Form(None),
-    id_subtitle: Optional[str] = Form(None),
-    id_cta_text: Optional[str] = Form(None),
-    id_cta_url: Optional[str] = Form(None),
-    en_title: Optional[str] = Form(None),
-    en_subtitle: Optional[str] = Form(None),
-    en_cta_text: Optional[str] = Form(None),
-    en_cta_url: Optional[str] = Form(None),
-    ar_title: Optional[str] = Form(None),
-    ar_subtitle: Optional[str] = Form(None),
-    ar_cta_text: Optional[str] = Form(None),
-    ar_cta_url: Optional[str] = Form(None),
+    title: Optional[str] = Form(None),
+    subtitle: Optional[str] = Form(None),
+    cta_text: Optional[str] = Form(None),
+    cta_url: Optional[str] = Form(None),
 ):
     if not require_admin(request):
         return RedirectResponse("/admin/login?msg=Please%20login", 302)
@@ -195,39 +159,14 @@ async def edit_item(
         item.poster_path = new_poster
     item.is_active = is_active == "on"
     item.sort_order = sort_order
-
-    def keep(old: Optional[str], new: Optional[str]) -> Optional[str]:
-        """Pakai nilai baru hanya jika non-empty setelah strip; kalau None/empty → keep old."""
-        if new is None:
-            return old
-        val = new.strip()
-        return val if val != "" else old
-
-    def upsert(lang, title, subtitle, cta_text, cta_url):
-        tr = next((t for t in item.translations if t.lang == lang), None)
-        if tr:
-            tr.title = keep(tr.title, title)
-            tr.subtitle = keep(tr.subtitle, subtitle)
-            tr.cta_text = keep(tr.cta_text, cta_text)
-            tr.cta_url = keep(tr.cta_url, cta_url)
-        else:
-            # buat baru hanya jika ada minimal satu field non-empty
-            vals = [title, subtitle, cta_text, cta_url]
-            if any(v and v.strip() for v in vals):
-                db.add(
-                    CarouselItemTR(
-                        item_id=item.id,
-                        lang=lang,
-                        title=title.strip() if title else None,
-                        subtitle=subtitle.strip() if subtitle else None,
-                        cta_text=cta_text.strip() if cta_text else None,
-                        cta_url=cta_url.strip() if cta_url else None,
-                    )
-                )
-
-    upsert("id", id_title, id_subtitle, id_cta_text, id_cta_url)
-    upsert("en", en_title, en_subtitle, en_cta_text, en_cta_url)
-    upsert("ar", ar_title, ar_subtitle, ar_cta_text, ar_cta_url)
+    if title is not None:
+        item.title = title.strip() or None
+    if subtitle is not None:
+        item.subtitle = subtitle.strip() or None
+    if cta_text is not None:
+        item.cta_text = cta_text.strip() or None
+    if cta_url is not None:
+        item.cta_url = cta_url.strip() or None
 
     db.commit()
     return RedirectResponse("/admin/carousel?msg=updated", 302)

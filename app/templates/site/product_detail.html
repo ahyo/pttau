@@ -1,19 +1,19 @@
 {% extends "layouts/base.html" %}
-{% block title %}{{ tr.name if tr else product.slug }} — {{ settings.APP_NAME }}{% endblock %}
+{% block title %}{{ product.name or product.slug }} — {{ settings.APP_NAME }}{% endblock %}
 {% block content %}
 <section class="pt-5 pb-4 bg-gradient" style="background: linear-gradient(135deg, #0f172a, #1d4ed8);">
   <div class="container py-4">
     <div class="row align-items-center g-4">
       <div class="col-lg-6" data-aos="fade-right">
-        <h1 class="display-5 text-white fw-bold mb-3">{{ tr.name if tr else product.slug }}</h1>
+        <h1 class="display-5 text-white fw-bold mb-3">{{ product.name or product.slug }}</h1>
         <p class="text-white-50 lead mb-0">
-          {{ tr.short_description if tr and tr.short_description else 'Solusi terbaik dari Wulung AeroTech untuk kebutuhan aeronautika Anda.' }}
+          {{ product.short_description if product.short_description else 'Solusi terbaik dari Wulung AeroTech untuk kebutuhan aeronautika Anda.' }}
         </p>
       </div>
       <div class="col-lg-6" data-aos="fade-left">
         <div class="ratio ratio-4x3 bg-dark rounded-4 overflow-hidden shadow-lg border border-white border-opacity-10">
           {% if product.image_url %}
-          <img src="{{ product.image_url }}" alt="{{ tr.name if tr else product.slug }}" class="w-100 h-100 object-fit-cover" />
+          <img src="{{ product.image_url }}" alt="{{ product.name or product.slug }}" class="w-100 h-100 object-fit-cover" />
           {% else %}
           <div class="d-flex align-items-center justify-content-center text-white-50">
             <i class="bi bi-box-seam" style="font-size: 4rem;"></i>
@@ -39,8 +39,8 @@
         <div class="card border-0 shadow-sm">
           <div class="card-body p-4">
             <h2 class="h4 mb-3">Tentang Produk</h2>
-            {% if tr and tr.description %}
-            <div class="rich-text">{{ tr.description | safe }}</div>
+            {% if product.description %}
+            <div class="rich-text">{{ product.description | safe }}</div>
             {% else %}
             <p class="text-muted mb-0">
               Informasi detail produk akan segera tersedia. Hubungi kami untuk mendapatkan spesifikasi lebih lanjut.

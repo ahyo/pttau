@@ -23,9 +23,7 @@ def _get_open_cart(db: Session, user_id: int) -> Cart:
             select(Cart)
             .where(Cart.user_id == user_id, Cart.status == "open")
             .options(
-                selectinload(Cart.items)
-                .selectinload(CartItem.product)
-                .selectinload(Product.translations)
+                selectinload(Cart.items).selectinload(CartItem.product)
             )
         )
         .scalar_one_or_none()
@@ -57,19 +55,13 @@ async def cart_view(request: Request, db: Session = Depends(get_db)):
     total = Decimal("0.00")
     for item in cart.items:
         product = item.product
-        tr = None
-        lang = getattr(request.state, "lang", "id")
-        for candidate in [lang, "en", "id"]:
-            tr = next((t for t in product.translations if t.lang == candidate), None)
-            if tr:
-                break
         subtotal = Decimal(item.unit_price or 0) * item.quantity
         total += subtotal
         items.append(
             {
                 "item": item,
                 "product": product,
-                "translation": tr,
+                "name": product.name,
                 "subtotal": subtotal,
             }
         )

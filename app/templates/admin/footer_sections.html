@@ -19,29 +19,13 @@ endblock %} {% block content %}
       <label class="form-label small text-muted">Sort Order</label>
       <input type="number" name="sort_order" class="form-control" value="0" />
     </div>
-    <div class="col-md-2">
-      <label class="form-label small text-muted">Name (ID)</label>
+    <div class="col-md-4">
+      <label class="form-label small text-muted">Nama Section</label>
       <input
-        name="id_name"
+        name="name"
         class="form-control"
         placeholder="Contoh: Tentang Kami"
-      />
-    </div>
-    <div class="col-md-2">
-      <label class="form-label small text-muted">Name (EN)</label>
-      <input
-        name="en_name"
-        class="form-control"
-        placeholder="Example: About Us"
-      />
-    </div>
-    <div class="col-md-2">
-      <label class="form-label small text-muted">Name (AR)</label>
-      <input
-        name="ar_name"
-        class="form-control"
-        dir="rtl"
-        placeholder="مثال: من نحن"
+        required
       />
     </div>
     <div class="col-md-2">
@@ -58,9 +42,7 @@ endblock %} {% block content %}
         <tr>
           <th style="width: 50px">#</th>
           <th style="width: 80px">Order</th>
-          <th>Name (ID)</th>
-          <th>Name (EN)</th>
-          <th>Name (AR)</th>
+          <th>Name</th>
           <th style="width: 220px">Actions</th>
         </tr>
       </thead>
@@ -69,9 +51,7 @@ endblock %} {% block content %}
         <tr>
           <td class="text-center">{{ s.id }}</td>
           <td class="text-center">{{ s.sort_order }}</td>
-          <td>{{ s.name_id or '-' }}</td>
-          <td>{{ s.name_en or '-' }}</td>
-          <td dir="rtl">{{ s.name_ar or '-' }}</td>
+          <td>{{ s.name }}</td>
           <td class="text-center">
             <div class="text-nowrap" role="group">
               <a
@@ -107,7 +87,7 @@ endblock %} {% block content %}
         </tr>
         {% else %}
         <tr>
-          <td colspan="6" class="text-center text-muted py-4">
+          <td colspan="4" class="text-center text-muted py-4">
             No sections yet.
           </td>
         </tr>

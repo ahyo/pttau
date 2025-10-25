@@ -1,6 +1,9 @@
-{% extends "layouts/base.html" %} {% block title %}{{ (tr.meta_title or
-tr.title) ~ " — " ~ settings.APP_NAME }}{% endblock %} {% block content %} {% if
-page.slug == "product" %} {{ tr.body | safe }} {% else %}
+{% extends "layouts/base.html" %}
+{% block title %}{{ (page.meta_title or page.title) ~ " — " ~ settings.APP_NAME }}{% endblock %}
+{% block content %}
+{% if page.slug == "product" %}
+  {{ page.body | safe }}
+{% else %}
 <section
   class="py-5 bg-dark text-white"
   style="background: linear-gradient(135deg, #0f172a, #1d4ed8)"
@@ -14,20 +17,20 @@ page.slug == "product" %} {{ tr.body | safe }} {% else %}
               <a class="text-white-50 text-decoration-none" href="/">Home</a>
             </li>
             <li class="breadcrumb-item text-white active" aria-current="page">
-              {{ tr.title }}
+              {{ page.title }}
             </li>
           </ol>
         </nav>
         <h1 class="display-5 fw-bold mb-3" data-aos="fade-right">
-          {{ tr.title }}
+          {{ page.title }}
         </h1>
-        {% if tr.excerpt %}
+        {% if page.excerpt %}
         <p
           class="lead mb-0 text-white-50"
           data-aos="fade-right"
           data-aos-delay="100"
         >
-          {{ tr.excerpt }}
+          {{ page.excerpt }}
         </p>
         {% endif %}
       </div>
@@ -37,7 +40,8 @@ page.slug == "product" %} {{ tr.body | safe }} {% else %}
 
 <section class="py-5">
   <div class="container">
-    <article class="content">{{ tr.body | safe }}</article>
+    <article class="content">{{ page.body | safe }}</article>
   </div>
 </section>
-{% endif %} {% endblock %}
+{% endif %}
+{% endblock %}

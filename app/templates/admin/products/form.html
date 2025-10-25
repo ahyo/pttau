@@ -2,10 +2,8 @@
 {% block title %}{% if mode == 'create' %}Tambah Produk{% else %}Ubah Produk{% endif %} — {{ settings.APP_NAME }}{% endblock %}
 {% block content %}
 {% set action = '/admin/products/create' if mode == 'create' else '/admin/products/' ~ product.id ~ '/edit' %}
-{% set id_tr = translations['id'] if translations and translations.get('id') else None %}
-{% set en_tr = translations['en'] if translations and translations.get('en') else None %}
-{% set ar_tr = translations['ar'] if translations and translations.get('ar') else None %}
-{% set initial_image = product.image_url if product and product.image_url else '' %}
+{% set data = form_data if form_data else {} %}
+{% set initial_image = (data.get('image_url') if data.get('image_url') else (product.image_url if product and product.image_url else '')) %}
 
 <section class="py-5">
   <div class="container">
@@ -36,7 +34,7 @@
                     type="text"
                     class="form-control"
                     placeholder="otomatis bila dikosongkan"
-                    value="{{ product.slug if product else '' }}"
+                    value="{{ data.get('slug', product.slug if product else '') }}"
                   />
                 </div>
                 <div class="col-md-3">
@@ -49,7 +47,7 @@
                       step="0.01"
                       min="0"
                       class="form-control"
-                      value="{{ product.price if product else '' }}"
+                      value="{{ data.get('price', product.price if product else '') }}"
                       required
                     />
                   </div>
@@ -61,7 +59,7 @@
                     type="number"
                     min="0"
                     class="form-control"
-                    value="{{ product.stock if product else 0 }}"
+                    value="{{ data.get('stock', product.stock if product else 0) }}"
                   />
                 </div>
                 <div class="col-12">
@@ -71,7 +69,7 @@
                     type="url"
                     class="form-control mb-2"
                     placeholder="https://... (opsional)"
-                    value="{{ product.image_url if product and product.image_url and product.image_url.startswith('http') else '' }}"
+                    value="{{ data.get('image_url', product.image_url if product and product.image_url and product.image_url.startswith('http') else '') }}"
                     data-product-image-url
                   />
                   <input
@@ -85,7 +83,9 @@
                 </div>
                 <div class="col-12">
                   <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" role="switch" name="is_active" id="is_active" {% if mode == 'create' or (product and product.is_active) %}checked{% endif %} />
+                    {% set is_active_flag = data.get('is_active') if data else None %}
+                    {% set active_default = (mode == 'create') or (product and product.is_active) %}
+                    <input class="form-check-input" type="checkbox" role="switch" name="is_active" id="is_active" {% if is_active_flag is none %}{% if active_default %}checked{% endif %}{% else %}{% if is_active_flag == 'on' %}checked{% endif %}{% endif %} />
                     <label class="form-check-label" for="is_active">Tampilkan produk di katalog</label>
                   </div>
                 </div>
@@ -93,83 +93,33 @@
 
               <hr class="my-4" />
 
-              <div class="accordion" id="translationAccordion">
-                <div class="accordion-item">
-                  <h2 class="accordion-header" id="headingID">
-                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseID" aria-expanded="true" aria-controls="collapseID">
-                      Konten Bahasa Indonesia
-                    </button>
-                  </h2>
-                  <div id="collapseID" class="accordion-collapse collapse show" aria-labelledby="headingID" data-bs-parent="#translationAccordion">
-                    <div class="accordion-body">
-                      <div class="row g-3">
-                        <div class="col-12">
-                          <label class="form-label">Nama Produk</label>
-                          <input name="id_name" type="text" class="form-control" value="{{ id_tr.name if id_tr else '' }}" />
-                        </div>
-                        <div class="col-12">
-                          <label class="form-label">Deskripsi Singkat</label>
-                          <input name="id_short_description" type="text" class="form-control" value="{{ id_tr.short_description if id_tr else '' }}" />
-                        </div>
-                        <div class="col-12">
-                          <label class="form-label">Deskripsi Lengkap</label>
-                          <textarea name="id_description" class="form-control" rows="5">{{ id_tr.description if id_tr else '' }}</textarea>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+              <div class="row g-3">
+                <div class="col-12">
+                  <label class="form-label">Nama Produk</label>
+                  <input
+                    name="name"
+                    type="text"
+                    class="form-control"
+                    value="{{ data.get('name', product.name if product else '') }}"
+                    required
+                  />
                 </div>
-
-                <div class="accordion-item">
-                  <h2 class="accordion-header" id="headingEN">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEN" aria-expanded="false" aria-controls="collapseEN">
-                      Konten Bahasa Inggris
-                    </button>
-                  </h2>
-                  <div id="collapseEN" class="accordion-collapse collapse" aria-labelledby="headingEN" data-bs-parent="#translationAccordion">
-                    <div class="accordion-body">
-                      <div class="row g-3">
-                        <div class="col-12">
-                          <label class="form-label">Product Name</label>
-                          <input name="en_name" type="text" class="form-control" value="{{ en_tr.name if en_tr else '' }}" />
-                        </div>
-                        <div class="col-12">
-                          <label class="form-label">Short Description</label>
-                          <input name="en_short_description" type="text" class="form-control" value="{{ en_tr.short_description if en_tr else '' }}" />
-                        </div>
-                        <div class="col-12">
-                          <label class="form-label">Full Description</label>
-                          <textarea name="en_description" class="form-control" rows="5">{{ en_tr.description if en_tr else '' }}</textarea>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                <div class="col-12">
+                  <label class="form-label">Deskripsi Singkat</label>
+                  <input
+                    name="short_description"
+                    type="text"
+                    class="form-control"
+                    value="{{ data.get('short_description', product.short_description if product else '') }}"
+                  />
                 </div>
-
-                <div class="accordion-item">
-                  <h2 class="accordion-header" id="headingAR">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAR" aria-expanded="false" aria-controls="collapseAR">
-                      Konten Bahasa Arab
-                    </button>
-                  </h2>
-                  <div id="collapseAR" class="accordion-collapse collapse" aria-labelledby="headingAR" data-bs-parent="#translationAccordion">
-                    <div class="accordion-body">
-                      <div class="row g-3">
-                        <div class="col-12">
-                          <label class="form-label">اسم المنتج</label>
-                          <input name="ar_name" type="text" class="form-control" value="{{ ar_tr.name if ar_tr else '' }}" />
-                        </div>
-                        <div class="col-12">
-                          <label class="form-label">وصف قصير</label>
-                          <input name="ar_short_description" type="text" class="form-control" value="{{ ar_tr.short_description if ar_tr else '' }}" />
-                        </div>
-                        <div class="col-12">
-                          <label class="form-label">وصف تفصيلي</label>
-                          <textarea name="ar_description" class="form-control" rows="5">{{ ar_tr.description if ar_tr else '' }}</textarea>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                <div class="col-12">
+                  <label class="form-label">Deskripsi Lengkap</label>
+                  <textarea
+                    name="description"
+                    class="form-control"
+                    rows="6"
+                  >{{ data.get('description', product.description if product else '') }}</textarea>
                 </div>
               </div>
 

@@ -1,16 +1,12 @@
 from fastapi import APIRouter, Request, Depends, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
-from sqlalchemy.orm import Session, selectinload
+from sqlalchemy.orm import Session
 from sqlalchemy import select
 from app.db import get_db
-from app.models.footer import FooterSection, FooterSectionTR, FooterLink, FooterLinkTR
-from app.services.i18n_db import DBI18n
-from app.ui import templates, get_footer_data, common_ctx
-from app.config import settings
+from app.models.footer import FooterSection, FooterLink
+from app.ui import templates, common_ctx
 
 router = APIRouter(tags=["admin"])
-
-LANGS = ["id", "en", "ar"]
 
 
 def require_admin(request: Request):
@@ -24,26 +20,23 @@ def footer_sections_list(request: Request, db: Session = Depends(get_db)):
 
     sections = (
         db.execute(
-            select(FooterSection)
-            .options(selectinload(FooterSection.translations))  # <- muat translasi
-            .order_by(FooterSection.sort_order.asc(), FooterSection.id.asc())
+            select(FooterSection).order_by(
+                FooterSection.sort_order.asc(), FooterSection.id.asc()
+            )
         )
         .scalars()
         .all()
     )
 
-    rows = []
-    for s in sections:
-        names = {tr.lang: tr.name for tr in (s.translations or [])}
-        rows.append(
-            {
-                "id": s.id,
-                "sort_order": s.sort_order,
-                "name_id": names.get("id"),
-                "name_en": names.get("en"),
-                "name_ar": names.get("ar"),
-            }
-        )
+    rows = [
+        {
+            "id": s.id,
+            "sort_order": s.sort_order,
+            "name": s.name,
+            "is_active": s.is_active,
+        }
+        for s in sections
+    ]
 
     return templates.TemplateResponse(
         "admin/footer_sections.html", {"request": request, "sections": rows}
@@ -56,20 +49,12 @@ async def section_create(
     request: Request,
     db: Session = Depends(get_db),
     sort_order: int = Form(0),
-    id_name: str = Form(""),
-    en_name: str = Form(""),
-    ar_name: str = Form(""),
+    name: str = Form(""),
 ):
-    lang = getattr(request.state, "lang", settings.DEFAULT_LANG)
-    i18n = DBI18n(db, lang)
     if not require_admin(request):
         return RedirectResponse("/admin/login", 302)
-    s = FooterSection(sort_order=sort_order)
+    s = FooterSection(sort_order=sort_order, name=name.strip() or "Section")
     db.add(s)
-    db.flush()
-    for lang, name in [("id", id_name), ("en", en_name), ("ar", ar_name)]:
-        if name:
-            db.add(FooterSectionTR(section_id=s.id, lang=lang, name=name))
     db.commit()
     return RedirectResponse("/admin/footer", 302)
 
@@ -77,8 +62,6 @@ async def section_create(
 # Manage links
 @router.get("/admin/footer/{sid}/links", response_class=HTMLResponse)
 async def footer_links(sid: int, request: Request, db: Session = Depends(get_db)):
-    lang = getattr(request.state, "lang", settings.DEFAULT_LANG)
-    i18n = DBI18n(db, lang)
     if not require_admin(request):
         return RedirectResponse("/admin/login", 302)
     section = db.get(FooterSection, sid)
@@ -93,7 +76,7 @@ async def footer_links(sid: int, request: Request, db: Session = Depends(get_db)
     )
     return templates.TemplateResponse(
         "admin/footer_links.html",
-        common_ctx(request, {"section": section, "links": links, "i18n": i18n}),
+        common_ctx(request, {"section": section, "links": links}),
     )
 
 
@@ -105,22 +88,19 @@ async def link_create(
     icon: str = Form(""),
     url: str = Form(""),
     sort_order: int = Form(0),
-    id_label: str = Form(""),
-    en_label: str = Form(""),
-    ar_label: str = Form(""),
+    label: str = Form(""),
 ):
-    lang = getattr(request.state, "lang", settings.DEFAULT_LANG)
-    i18n = DBI18n(db, lang)
     if not require_admin(request):
         return RedirectResponse("/admin/login", 302)
 
-    link = FooterLink(section_id=sid, icon=icon, url=url, sort_order=sort_order)
+    link = FooterLink(
+        section_id=sid,
+        icon=icon or None,
+        url=url or None,
+        sort_order=sort_order,
+        label=label.strip() or "(no label)",
+    )
     db.add(link)
-    db.flush()
-
-    for lang, label in [("id", id_label), ("en", en_label), ("ar", ar_label)]:
-        if label:
-            db.add(FooterLinkTR(link_id=link.id, lang=lang, label=label))
     db.commit()
 
     return RedirectResponse(f"/admin/footer/{sid}/links", 302)
@@ -128,20 +108,15 @@ async def link_create(
 
 @router.get("/admin/footer/section/{sid}/edit", response_class=HTMLResponse)
 async def section_edit_form(sid: int, request: Request, db: Session = Depends(get_db)):
-    lang = getattr(request.state, "lang", settings.DEFAULT_LANG)
-    i18n = DBI18n(db, lang)
     if not require_admin(request):
         return RedirectResponse("/admin/login", 302)
     section = db.get(FooterSection, sid)
     if not section:
         return RedirectResponse("/admin/footer?msg=Not%20found", 302)
 
-    # buat dict translasi: {"id": FooterSectionTR|None, ...}
-    tr_map = {tr.lang: tr for tr in section.translations}
-
     return templates.TemplateResponse(
         "admin/footer_section_edit.html",
-        common_ctx(request, {"section": section, "trs": tr_map, "i18n": i18n}),
+        common_ctx(request, {"section": section}),
     )
 
 
@@ -150,12 +125,9 @@ async def section_edit(
     sid: int,
     request: Request,
     db: Session = Depends(get_db),
-    code: str = Form(""),
     sort_order: int = Form(0),
     is_active: str = Form("off"),
-    id_name: str = Form(""),
-    en_name: str = Form(""),
-    ar_name: str = Form(""),
+    name: str = Form(""),
 ):
     if not require_admin(request):
         return RedirectResponse("/admin/login", 302)
@@ -164,20 +136,9 @@ async def section_edit(
     if not section:
         return RedirectResponse("/admin/footer?msg=Not%20found", 302)
 
-    section.code = code or None
     section.sort_order = sort_order
     section.is_active = is_active == "on"
-
-    # Upsert translasi
-    existing = {tr.lang: tr for tr in section.translations}
-    for lang, val in [("id", id_name), ("en", en_name), ("ar", ar_name)]:
-        tr = existing.get(lang)
-        if tr:
-            tr.name = val or tr.name
-            # jika ingin bisa kosongkan: tr.name = val
-        else:
-            if val:
-                db.add(FooterSectionTR(section_id=section.id, lang=lang, name=val))
+    section.name = name.strip() or section.name
 
     db.commit()
     return RedirectResponse("/admin/footer?msg=Updated", 302)
@@ -192,8 +153,6 @@ async def section_edit(
 async def link_edit_form(
     sid: int, lid: int, request: Request, db: Session = Depends(get_db)
 ):
-    lang = getattr(request.state, "lang", settings.DEFAULT_LANG)
-    i18n = DBI18n(db, lang)
     if not require_admin(request):
         return RedirectResponse("/admin/login", 302)
 
@@ -202,13 +161,9 @@ async def link_edit_form(
     if not section or not link or link.section_id != section.id:
         return RedirectResponse(f"/admin/footer/{sid}/links?msg=Not%20found", 302)
 
-    tr_map = {tr.lang: tr for tr in link.translations}
-
     return templates.TemplateResponse(
         "admin/footer_link_edit.html",
-        common_ctx(
-            request, {"section": section, "link": link, "trs": tr_map, "i18n": i18n}
-        ),
+        common_ctx(request, {"section": section, "link": link}),
     )
 
 
@@ -222,9 +177,7 @@ async def link_edit(
     url: str = Form(""),
     sort_order: int = Form(0),
     is_active: str = Form("off"),
-    id_label: str = Form(""),
-    en_label: str = Form(""),
-    ar_label: str = Form(""),
+    label: str = Form(""),
 ):
     if not require_admin(request):
         return RedirectResponse("/admin/login", 302)
@@ -239,18 +192,7 @@ async def link_edit(
     link.url = url or None
     link.sort_order = sort_order
     link.is_active = is_active == "on"
-
-    # upsert translasi label
-    existing = {tr.lang: tr for tr in link.translations}
-    for lang, label in [("id", id_label), ("en", en_label), ("ar", ar_label)]:
-        tr = existing.get(lang)
-        if tr:
-            # jika label kosong dan kamu ingin kosongkan, pakai: tr.label = label
-            if label:
-                tr.label = label
-        else:
-            if label:
-                db.add(FooterLinkTR(link_id=link.id, lang=lang, label=label))
+    link.label = label.strip() or link.label
 
     db.commit()
     return RedirectResponse(f"/admin/footer/{sid}/links?msg=Updated", 302)

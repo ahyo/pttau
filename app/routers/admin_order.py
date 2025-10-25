@@ -20,14 +20,7 @@ def require_admin(request: Request) -> bool:
 def _product_display(product: Product) -> str:
     if not product:
         return "Unknown product"
-
-    translations = getattr(product, "translations", []) or []
-    for lang_code in ("id", "en", "ar"):
-        tr = next((tran for tran in translations if tran.lang == lang_code), None)
-        if tr and tr.name:
-            return tr.name
-
-    return product.slug or f"Product #{product.id}"
+    return product.name or product.slug or f"Product #{product.id}"
 
 
 @router.get("/admin/orders", response_class=HTMLResponse)
@@ -41,9 +34,7 @@ async def admin_orders_list(request: Request, db: Session = Depends(get_db)):
             .where(Cart.status != "open")
             .options(
                 selectinload(Cart.user),
-                selectinload(Cart.items).selectinload(CartItem.product).selectinload(
-                    Product.translations
-                ),
+                selectinload(Cart.items).selectinload(CartItem.product),
             )
             .order_by(Cart.created_at.desc())
         )

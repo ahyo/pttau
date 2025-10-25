@@ -8,8 +8,7 @@ from sqlalchemy.orm import Session
 from slugify import slugify
 
 from app.db import get_db
-from app.models.product import Product, ProductTR
-from app.services.i18n_db import DBI18n
+from app.models.product import Product
 from app.ui import common_ctx, templates
 
 router = APIRouter(tags=["admin"])
@@ -56,43 +55,17 @@ async def admin_product_create_form(request: Request, db: Session = Depends(get_
     if not require_admin(request):
         return RedirectResponse("/admin/login?msg=Please%20login", status_code=302)
 
-    lang = getattr(request.state, "lang", "id")
-    i18n = DBI18n(db, lang)
-
     return templates.TemplateResponse(
         "admin/products/form.html",
         common_ctx(
             request,
             {
                 "mode": "create",
-                "i18n": i18n,
-                "lang": lang,
-                "translations": {},
+                "product": None,
+                "form_data": {},
             },
         ),
     )
-
-
-def _set_translation(db: Session, product: Product, lang: str, data: dict):
-    text_fields = [data.get("name"), data.get("short_description"), data.get("description")]
-    if not any(filter(None, text_fields)):
-        return
-
-    existing = next((tr for tr in product.translations if tr.lang == lang), None)
-    if existing:
-        existing.name = data.get("name") or existing.name
-        existing.short_description = data.get("short_description")
-        existing.description = data.get("description")
-    else:
-        db.add(
-            ProductTR(
-                product_id=product.id,
-                lang=lang,
-                name=data.get("name") or product.slug,
-                short_description=data.get("short_description"),
-                description=data.get("description"),
-            )
-        )
 
 
 def _normalize_slug(value: str) -> str:
@@ -119,38 +92,36 @@ async def admin_product_create(
     image_url: str = Form(""),
     image_file: UploadFile = File(None),
     is_active: str = Form("on"),
-    id_name: str = Form(""),
-    id_short_description: str = Form(""),
-    id_description: str = Form(""),
-    en_name: str = Form(""),
-    en_short_description: str = Form(""),
-    en_description: str = Form(""),
-    ar_name: str = Form(""),
-        ar_short_description: str = Form(""),
-        ar_description: str = Form(""),
+    name: str = Form(""),
+    short_description: str = Form(""),
+    description: str = Form(""),
 ):
     if not require_admin(request):
         return RedirectResponse("/admin/login?msg=Please%20login", status_code=302)
 
     desired_slug = (
         (slug or "").strip()
-        or (id_name or "").strip()
-        or (en_name or "").strip()
+        or (name or "").strip()
         or "product"
     )
     product_slug = _normalize_slug(desired_slug)
     if _slug_exists(db, product_slug):
-        lang = getattr(request.state, "lang", "id")
-        i18n = DBI18n(db, lang)
         return templates.TemplateResponse(
             "admin/products/form.html",
             common_ctx(
                 request,
                 {
                     "mode": "create",
-                    "i18n": i18n,
-                    "lang": lang,
-                    "translations": {},
+                    "product": None,
+                    "form_data": {
+                        "name": name,
+                        "short_description": short_description,
+                        "description": description,
+                        "price": price,
+                        "stock": stock,
+                        "image_url": image_url,
+                        "is_active": is_active,
+                    },
                     "error": "Slug sudah digunakan. Gunakan slug lain.",
                 },
             ),
@@ -165,40 +136,12 @@ async def admin_product_create(
         stock=stock,
         image_url=media_path or (cleaned_image_url or None),
         is_active=is_active == "on",
+        name=(name or product_slug).strip(),
+        short_description=short_description.strip() or None,
+        description=description,
     )
     db.add(product)
     db.flush()
-
-    _set_translation(
-        db,
-        product,
-        "id",
-        {
-            "name": id_name.strip(),
-            "short_description": id_short_description.strip(),
-            "description": id_description,
-        },
-    )
-    _set_translation(
-        db,
-        product,
-        "en",
-        {
-            "name": en_name.strip(),
-            "short_description": en_short_description.strip(),
-            "description": en_description,
-        },
-    )
-    _set_translation(
-        db,
-        product,
-        "ar",
-        {
-            "name": ar_name.strip(),
-            "short_description": ar_short_description.strip(),
-            "description": ar_description,
-        },
-    )
 
     db.commit()
 
@@ -216,10 +159,6 @@ async def admin_product_edit_form(
     if not product:
         return RedirectResponse("/admin/products?msg=Not%20found", status_code=302)
 
-    translations = {tr.lang: tr for tr in product.translations}
-    lang = getattr(request.state, "lang", "id")
-    i18n = DBI18n(db, lang)
-
     return templates.TemplateResponse(
         "admin/products/form.html",
         common_ctx(
@@ -227,9 +166,7 @@ async def admin_product_edit_form(
             {
                 "mode": "edit",
                 "product": product,
-                "translations": translations,
-                "i18n": i18n,
-                "lang": lang,
+                "form_data": {},
             },
         ),
     )
@@ -246,15 +183,9 @@ async def admin_product_edit(
     image_url: str = Form(""),
     image_file: UploadFile = File(None),
     is_active: str = Form("off"),
-    id_name: str = Form(""),
-    id_short_description: str = Form(""),
-    id_description: str = Form(""),
-    en_name: str = Form(""),
-    en_short_description: str = Form(""),
-    en_description: str = Form(""),
-    ar_name: str = Form(""),
-    ar_short_description: str = Form(""),
-    ar_description: str = Form(""),
+    name: str = Form(""),
+    short_description: str = Form(""),
+    description: str = Form(""),
 ):
     if not require_admin(request):
         return RedirectResponse("/admin/login?msg=Please%20login", status_code=302)
@@ -263,19 +194,14 @@ async def admin_product_edit(
     if not product:
         return RedirectResponse("/admin/products?msg=Not%20found", status_code=302)
 
-    translations = {tr.lang: tr for tr in product.translations}
-    lang = getattr(request.state, "lang", "id")
-
     desired_slug = (
         (slug or "").strip()
         or product.slug
-        or (id_name or "").strip()
-        or (en_name or "").strip()
+        or (name or "").strip()
         or "product"
     )
     new_slug = _normalize_slug(desired_slug)
     if _slug_exists(db, new_slug, exclude_product_id=product.id):
-        i18n = DBI18n(db, lang)
         return templates.TemplateResponse(
             "admin/products/form.html",
             common_ctx(
@@ -283,9 +209,15 @@ async def admin_product_edit(
                 {
                     "mode": "edit",
                     "product": product,
-                    "translations": translations,
-                    "i18n": i18n,
-                    "lang": lang,
+                    "form_data": {
+                        "name": name,
+                        "short_description": short_description,
+                        "description": description,
+                        "price": price,
+                        "stock": stock,
+                        "image_url": image_url,
+                        "is_active": is_active,
+                    },
                     "error": "Slug sudah digunakan. Gunakan slug lain.",
                 },
             ),
@@ -301,37 +233,9 @@ async def admin_product_edit(
     elif cleaned_image_url:
         product.image_url = cleaned_image_url
     product.is_active = is_active == "on"
-
-    _set_translation(
-        db,
-        product,
-        "id",
-        {
-            "name": id_name.strip(),
-            "short_description": id_short_description.strip(),
-            "description": id_description,
-        },
-    )
-    _set_translation(
-        db,
-        product,
-        "en",
-        {
-            "name": en_name.strip(),
-            "short_description": en_short_description.strip(),
-            "description": en_description,
-        },
-    )
-    _set_translation(
-        db,
-        product,
-        "ar",
-        {
-            "name": ar_name.strip(),
-            "short_description": ar_short_description.strip(),
-            "description": ar_description,
-        },
-    )
+    product.name = (name or product.name or product.slug).strip()
+    product.short_description = short_description.strip() or None
+    product.description = description
 
     db.commit()
 

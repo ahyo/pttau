@@ -11,7 +11,7 @@
         <option value="">(Root)</option>
         {% for p in parents %}
           <option value="{{ p.id }}" {{ 'selected' if item.parent_id==p.id else '' }}>
-            {{ (p.translations|selectattr('lang','equalto','id')|list|first).label if p.translations else ('#' ~ p.id) }}
+            {{ p.label }}
           </option>
         {% endfor %}
       </select>
@@ -67,21 +67,9 @@
 
     <div class="col-12"><hr></div>
 
-    {% set tr_id = trs.get('id') %}
-    {% set tr_en = trs.get('en') %}
-    {% set tr_ar = trs.get('ar') %}
-
-    <div class="col-md-4">
-      <label class="form-label">Label (ID)</label>
-      <input name="id_label" class="form-control" value="{{ tr_id.label if tr_id else '' }}">
-    </div>
-    <div class="col-md-4">
-      <label class="form-label">Label (EN)</label>
-      <input name="en_label" class="form-control" value="{{ tr_en.label if tr_en else '' }}">
-    </div>
-    <div class="col-md-4">
-      <label class="form-label">Label (AR)</label>
-      <input name="ar_label" class="form-control" value="{{ tr_ar.label if tr_ar else '' }}" dir="rtl">
+    <div class="col-md-6">
+      <label class="form-label">Label</label>
+      <input name="label" class="form-control" value="{{ item.label }}" required>
     </div>
 
     <div class="col-12 mt-2 d-flex gap-2">

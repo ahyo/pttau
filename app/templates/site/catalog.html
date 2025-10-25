@@ -1,5 +1,9 @@
-{% extends "layouts/base.html" %} {% block title %}Katalog Produk — {{
-settings.APP_NAME }}{% endblock %} {% block content %} {{ tr.body | safe}}
+{% extends "layouts/base.html" %}
+{% block title %}Katalog Produk — {{ settings.APP_NAME }}{% endblock %}
+{% block content %}
+{% if page and page.body %}
+  {{ page.body | safe }}
+{% endif %}
 
 <section class="py-5" id="catalog-grid">
   <div class="container">
@@ -13,10 +17,10 @@ settings.APP_NAME }}{% endblock %} {% block content %} {{ tr.body | safe}}
         aria-label="Close"
       ></button>
     </div>
-    {% endif %} {% if products %}
+    {% endif %}
+    {% if products %}
     <div class="row g-4">
-      {% for item in products %} {% set product = item.product %} {% set tr =
-      item.tr %}
+      {% for product in products %}
       <div
         class="col-md-6 col-lg-4"
         data-aos="fade-up"
@@ -44,11 +48,15 @@ settings.APP_NAME }}{% endblock %} {% block content %} {{ tr.body | safe}}
                 >Ready</span
               >
             </div>
-            <h5 class="card-title">{{ tr.name if tr else product.slug }}</h5>
+            <h5 class="card-title">{{ product.name or product.slug }}</h5>
             <p class="card-text text-muted flex-grow-1">
-              {{ tr.short_description if tr and tr.short_description else
-              (tr.description[:120] ~ '...') if tr and tr.description else
-              'Produk premium Wulung AeroTech' }}
+              {% if product.short_description %}
+                {{ product.short_description }}
+              {% elif product.description %}
+                {{ product.description[:120] ~ ('...' if product.description|length > 120 else '') }}
+              {% else %}
+                Produk premium Wulung AeroTech
+              {% endif %}
             </p>
             <div class="d-flex justify-content-between align-items-center mt-3">
               <div class="fw-semibold text-primary">

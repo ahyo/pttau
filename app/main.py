@@ -1,12 +1,11 @@
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware import Middleware
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
 from app.config import settings
 from app.db import get_db
-from app.i18n import pick_lang
 from app.routers import (
     admin_carousel,
     admin_footer,
@@ -24,10 +23,8 @@ from app.routers import (
 import logging, os
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from app.services.i18n_db import DBI18n
 from app.middleware.context import ContextInjectorMiddleware
 
-# bahasa
 VALID_LANGS = {"id", "en", "ar"}
 
 os.makedirs("app/logs", exist_ok=True)
@@ -56,34 +53,38 @@ templates = Jinja2Templates(directory="app/templates")
 templates.env.globals["settings"] = settings
 
 
-@app.exception_handler(StarletteHTTPException)
-async def http_exception_handler(request: Request, exc: StarletteHTTPException):
-    if exc.status_code == 404:
-        # minimal context supaya navbar tetap punya i18n/lang
-        db = next(get_db())
-        lang = getattr(request.state, "lang", settings.DEFAULT_LANG)
-        i18n = DBI18n(db, lang)
-        return templates.TemplateResponse(
-            "site/404.html",
-            {"request": request, "lang": lang, "i18n": i18n},
-            status_code=404,
-        )
-    return HTMLResponse(str(exc.detail), status_code=exc.status_code)
+def choose_lang(request: Request) -> str:
+    query_lang = request.query_params.get("lang")
+    if query_lang in VALID_LANGS:
+        return query_lang
+    cookie_lang = request.cookies.get("lang")
+    if cookie_lang in VALID_LANGS:
+        return cookie_lang
+    return settings.DEFAULT_LANG
 
 
 @app.middleware("http")
 async def lang_middleware(request: Request, call_next):
-    lang = pick_lang(request, default_lang=settings.DEFAULT_LANG)
+    lang = choose_lang(request)
     request.state.lang = lang
     response: Response = await call_next(request)
-    # persist cookie selama 1 tahun
-    if request.query_params.get("lang") in {"id", "en", "ar"}:
+    if request.query_params.get("lang") in VALID_LANGS:
         response.set_cookie("lang", lang, max_age=60 * 60 * 24 * 365, samesite="lax")
     return response
 
 
-def set_lang_cookie(resp: Response, lang: str):
-    resp.set_cookie("lang", lang, max_age=60 * 60 * 24 * 365, samesite="lax")
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request: Request, exc: StarletteHTTPException):
+    if exc.status_code == 404:
+        # minimal context supaya navbar tetap punya informasi dasar
+        db = next(get_db())
+        lang = getattr(request.state, "lang", settings.DEFAULT_LANG)
+        return templates.TemplateResponse(
+            "site/404.html",
+            {"request": request, "lang": lang},
+            status_code=404,
+        )
+    return HTMLResponse(str(exc.detail), status_code=exc.status_code)
 
 
 @app.get("/health")
@@ -95,12 +96,11 @@ def health():
 @app.get("/set-lang/{code}")
 async def set_lang(code: str, request: Request):
     lang = code if code in VALID_LANGS else settings.DEFAULT_LANG
-    # redirect ke halaman sebelumnya (atau ke '/')
-    back = request.headers.get("referer") or "/"
-    resp = RedirectResponse(url=back, status_code=302)
-    resp.set_cookie("lang", lang, max_age=60 * 60 * 24 * 365, samesite="lax")
-    return resp
-
+    referer = request.headers.get("referer") or "/"
+    response = Response(status_code=302)
+    response.headers["Location"] = referer
+    response.set_cookie("lang", lang, max_age=60 * 60 * 24 * 365, samesite="lax")
+    return response
 
 app.include_router(auth.router)
 app.include_router(catalog.router)

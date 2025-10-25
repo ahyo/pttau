@@ -2,7 +2,7 @@
 from fastapi.templating import Jinja2Templates
 from app.config import settings
 from sqlalchemy import select
-from app.models.footer import FooterSection, FooterSectionTR, FooterLink, FooterLinkTR
+from app.models.footer import FooterSection, FooterLink
 
 
 templates = Jinja2Templates(directory="app/templates")
@@ -22,7 +22,7 @@ def common_ctx(request, extra: dict | None = None):
     return base
 
 
-def get_footer_data(db, lang: str):
+def get_footer_data(db, lang: str | None = None):
     sections = (
         db.execute(
             select(FooterSection)
@@ -34,19 +34,6 @@ def get_footer_data(db, lang: str):
     )
     footer_data = []
     for sec in sections:
-        tr_name = db.execute(
-            select(FooterSectionTR.name).where(
-                FooterSectionTR.section_id == sec.id, FooterSectionTR.lang == lang
-            )
-        ).scalar_one_or_none()
-        name = (
-            tr_name
-            or db.execute(
-                select(FooterSectionTR.name).where(
-                    FooterSectionTR.section_id == sec.id, FooterSectionTR.lang == "en"
-                )
-            ).scalar_one_or_none()
-        )
         links = (
             db.execute(
                 select(FooterLink)
@@ -58,15 +45,8 @@ def get_footer_data(db, lang: str):
         )
         link_data = []
         for l in links:
-            lbl = db.execute(
-                select(FooterLinkTR.label).where(
-                    FooterLinkTR.link_id == l.id, FooterLinkTR.lang == lang
-                )
-            ).scalar_one_or_none()
-            link_data.append(
-                {"icon": l.icon, "url": l.url, "label": lbl or "(no label)"}
-            )
-        footer_data.append({"name": name, "links": link_data})
+            link_data.append({"icon": l.icon, "url": l.url, "label": l.label})
+        footer_data.append({"name": sec.name, "links": link_data})
     return footer_data
 
 

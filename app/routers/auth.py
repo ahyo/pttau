@@ -10,7 +10,6 @@ from app.deps import verify_password, hash_password
 from app.models.user import User
 from app.models.cart import Cart, CartItem
 from app.models.product import Product
-from app.services.i18n_db import DBI18n
 from app.ui import common_ctx, templates
 
 router = APIRouter(tags=["auth"])
@@ -23,18 +22,11 @@ def _require_user_session(request: Request) -> dict | None:
 def _product_name(product: Product | None) -> str:
     if not product:
         return "Produk tidak tersedia"
-    translations = getattr(product, "translations", []) or []
-    for lang_code in ("id", "en", "ar"):
-        tr = next((tran for tran in translations if tran.lang == lang_code), None)
-        if tr and tr.name:
-            return tr.name
-    return product.slug or f"Produk #{product.id}"
+    return product.name or product.slug or f"Produk #{product.id}"
 
 
 @router.get("/register", response_class=HTMLResponse)
 async def register_form(request: Request, db: Session = Depends(get_db)):
-    lang = getattr(request.state, "lang", "id")
-    i18n = DBI18n(db, lang)
     if request.session.get("user"):
         return RedirectResponse("/catalog", status_code=302)
 
@@ -43,8 +35,6 @@ async def register_form(request: Request, db: Session = Depends(get_db)):
         common_ctx(
             request,
             {
-                "lang": lang,
-                "i18n": i18n,
             },
         ),
     )
@@ -119,9 +109,7 @@ async def account_orders(
             select(Cart)
             .where(Cart.user_id == user_session["id"], Cart.status != "open")
             .options(
-                selectinload(Cart.items).selectinload(CartItem.product).selectinload(
-                    Product.translations
-                )
+                selectinload(Cart.items).selectinload(CartItem.product)
             )
             .order_by(Cart.created_at.desc())
         )
@@ -172,16 +160,11 @@ async def account_password_form(
     if not user_session:
         return RedirectResponse("/login?msg=Login%20required", status_code=302)
 
-    lang = getattr(request.state, "lang", "id")
-    i18n = DBI18n(db, lang)
-
     return templates.TemplateResponse(
         "site/change_password.html",
         common_ctx(
             request,
             {
-                "lang": lang,
-                "i18n": i18n,
                 "msg": request.query_params.get("msg", ""),
                 "err": request.query_params.get("err", ""),
             },
@@ -239,8 +222,6 @@ async def account_password_update(
 
 @router.get("/login", response_class=HTMLResponse)
 async def login_form(request: Request, db: Session = Depends(get_db)):
-    lang = getattr(request.state, "lang", "id")
-    i18n = DBI18n(db, lang)
     if request.session.get("user"):
         return RedirectResponse("/catalog", status_code=302)
 
@@ -249,8 +230,6 @@ async def login_form(request: Request, db: Session = Depends(get_db)):
         common_ctx(
             request,
             {
-                "lang": lang,
-                "i18n": i18n,
             },
         ),
     )

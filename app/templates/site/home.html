@@ -8,7 +8,7 @@ endblock %} {% block content %}
     data-bs-interval="7000"
   >
     <div class="carousel-indicators">
-      {% for s in slides %}
+      {% for slide in slides %}
       <button
         type="button"
         data-bs-target="#heroCarousel"
@@ -19,50 +19,50 @@ endblock %} {% block content %}
     </div>
 
     <div class="carousel-inner">
-      {% for s in slides %}
+      {% for slide in slides %}
       <div
         class="carousel-item hero-slide {{ 'active' if loop.first else '' }}"
       >
-        {% if s.item.media_type == 'video' %}
+        {% if slide.media_type == 'video' %}
         <video
           class="d-block w-100"
           playsinline
           muted
           preload="metadata"
-          poster="{{ s.item.poster_path or '' }}"
+          poster="{{ slide.poster_path or '' }}"
         >
-          <source src="{{ s.item.media_path }}" type="video/mp4" />
+          <source src="{{ slide.media_path }}" type="video/mp4" />
         </video>
         {% else %}
         <img
-          src="{{ s.item.media_path }}"
+          src="{{ slide.media_path }}"
           class="d-block w-100"
-          alt="{{ s.tr.title if s.tr and s.tr.title else 'Slide' }}"
+          alt="{{ slide.title or 'Slide' }}"
         />
         {% endif %}
         <div class="hero-overlay"></div>
-        {% if s.tr %}
+        {% if slide.title or slide.subtitle or (slide.cta_text and slide.cta_url) %}
         <div
           class="carousel-caption d-flex align-items-center h-100 px-3 px-md-4"
         >
           <div class="hero-caption">
-            {% if s.tr.title %}
+            {% if slide.title %}
             <h1 class="hero-title" data-aos="fade-up" data-aos-delay="100">
-              {{ s.tr.title }}
+              {{ slide.title }}
             </h1>
-            {% endif %} {% if s.tr.subtitle %}
+            {% endif %} {% if slide.subtitle %}
             <div class="hero-subtitle" data-aos="fade-up" data-aos-delay="200">
-              {{ s.tr.subtitle | safe }}
+              {{ slide.subtitle | safe }}
             </div>
-            {% endif %} {% if s.tr.cta_text and s.tr.cta_url %}
+            {% endif %} {% if slide.cta_text and slide.cta_url %}
             <a
-              href="{{ s.tr.cta_url }}"
+              href="{{ slide.cta_url }}"
               class="btn btn-primary btn-cta mt-3"
               style="background-color: #6f869e; border: none"
               data-aos="zoom-in"
               data-aos-delay="300"
             >
-              {{ s.tr.cta_text }}
+              {{ slide.cta_text }}
             </a>
             {% endif %}
           </div>
@@ -97,7 +97,12 @@ endblock %} {% block content %}
 <section class="section-intro py-5">
   <div class="container">
     <div class="row align-items-center g-4">
-      {{ section_home_1_tr.body | safe}} {{ section_home_2_tr.body | safe}}
+      {% if section_home_1 and section_home_1.body %}
+        {{ section_home_1.body | safe }}
+      {% endif %}
+      {% if section_home_2 and section_home_2.body %}
+        {{ section_home_2.body | safe }}
+      {% endif %}
     </div>
   </div>
 </section>
@@ -107,10 +112,14 @@ endblock %} {% block content %}
   <div class="container">
     <div class="row g-4">
       <!-- Capabilities -->
-      {{ kapabilitas_tr.body | safe }}
+      {% if kapabilitas_section and kapabilitas_section.body %}
+        {{ kapabilitas_section.body | safe }}
+      {% endif %}
 
       <!-- Highlights -->
-      {{ highlight_tr.body | safe }}
+      {% if highlight_section and highlight_section.body %}
+        {{ highlight_section.body | safe }}
+      {% endif %}
     </div>
   </div>
 </section>

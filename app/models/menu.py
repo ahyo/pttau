@@ -17,22 +17,8 @@ class MenuItem(Base):
     requires_admin = Column(Boolean, nullable=False, default=False)
     icon = Column(String(64))
     target = Column(String(16))  # _blank / _self
+    label = Column(String(100), nullable=False)
 
     parent = relationship(
         "MenuItem", remote_side=[id], backref="children", cascade="all, delete"
     )
-    translations = relationship(
-        "MenuItemTR", back_populates="item", cascade="all, delete-orphan"
-    )
-
-
-class MenuItemTR(Base):
-    __tablename__ = "menu_item_tr"
-    id = Column(Integer, primary_key=True)
-    item_id = Column(
-        Integer, ForeignKey("menu_item.id", ondelete="CASCADE"), nullable=False
-    )
-    lang = Column(String(5), nullable=False)
-    label = Column(String(100), nullable=False)
-
-    item = relationship("MenuItem", back_populates="translations")

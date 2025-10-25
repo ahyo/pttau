@@ -1,6 +1,5 @@
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
-from app.services.i18n_db import DBI18n
 from app.services.menu import get_menu_tree
 from app.config import settings
 from app.db import SessionLocal
@@ -17,13 +16,6 @@ class ContextInjectorMiddleware(BaseHTTPMiddleware):
             lang = getattr(request.state, "lang", settings.DEFAULT_LANG)
             request.state.lang = lang
             request.state.db = db
-
-            # aman dari error
-            try:
-                request.state.i18n = DBI18n(db, lang)
-            except Exception as e:
-                print("⚠️ i18n init failed:", e)
-                request.state.i18n = None
 
             admin = None
             user = None

@@ -41,33 +41,14 @@
     </div>
 
     <hr class="my-4" />
-
-    {% set id_tr = trs.get('id') %} {% set en_tr = trs.get('en') %} {% set ar_tr
-    = trs.get('ar') %}
-
     <div class="row g-3">
-      <div class="col-md-4">
-        <label class="form-label">Label (ID)</label>
+      <div class="col-md-6">
+        <label class="form-label">Label</label>
         <input
-          name="id_label"
+          name="label"
           class="form-control"
-          value="{{ id_tr.label if id_tr else '' }}"
-        />
-      </div>
-      <div class="col-md-4">
-        <label class="form-label">Label (EN)</label>
-        <input
-          name="en_label"
-          class="form-control"
-          value="{{ en_tr.label if en_tr else '' }}"
-        />
-      </div>
-      <div class="col-md-4">
-        <label class="form-label">Label (AR)</label>
-        <input
-          name="ar_label"
-          class="form-control"
-          value="{{ ar_tr.label if ar_tr else '' }}"
+          value="{{ link.label }}"
+          required
         />
       </div>
     </div>
