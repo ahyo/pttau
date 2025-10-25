@@ -25,7 +25,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.middleware.context import ContextInjectorMiddleware
 
-# suka error
+# suka o
 VALID_LANGS = {"id", "en", "ar"}
 
 os.makedirs("app/logs", exist_ok=True)
