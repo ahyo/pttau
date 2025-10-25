@@ -168,35 +168,6 @@
         </li>
         {% endif %}
 
-        {% set language_options = [
-          {'code': 'id', 'label': 'Indonesia', 'flag': '🇮🇩'},
-          {'code': 'en', 'label': 'English', 'flag': '🇬🇧'},
-          {'code': 'ar', 'label': 'العربية', 'flag': '🇸🇦'}
-        ] %}
-        <li class="nav-item dropdown ms-lg-3">
-          <a
-            class="nav-link dropdown-toggle text-uppercase"
-            style="color: #fff"
-            href="#"
-            role="button"
-            data-bs-toggle="dropdown"
-          >
-            {% set active_lang = lang if lang in ['id','en','ar'] else settings.DEFAULT_LANG %}
-            {% set current = (language_options | selectattr('code','equalto', active_lang) | list | first) %}
-            {{ current.flag if current else '🌐' }} {{ current.label if current else 'Language' }}
-          </a>
-          <ul class="dropdown-menu dropdown-menu-end">
-            {% for option in language_options %}
-            <li>
-              <a class="dropdown-item d-flex align-items-center gap-2 {% if option.code == active_lang %}active{% endif %}" href="/set-lang/{{ option.code }}">
-                <span>{{ option.flag }}</span>
-                <span>{{ option.label }}</span>
-              </a>
-            </li>
-            {% endfor %}
-          </ul>
-        </li>
-
         {% if admin %}
         <li class="nav-item dropdown">
           <a

@@ -1,0 +1,43 @@
+<div class="lang-switcher">
+  {% set current_path = request.url.path %}
+  {% if current_path != '/' %}
+    {% set current_path = current_path.rstrip('/') %}
+  {% endif %}
+  {% set base_path = current_path %}
+  {% if base_path.startswith('/en/') %}
+    {% set base_path = base_path[3:] %}
+  {% elif base_path == '/en' %}
+    {% set base_path = '/' %}
+  {% elif base_path.startswith('/ar/') %}
+    {% set base_path = base_path[3:] %}
+  {% elif base_path == '/ar' %}
+    {% set base_path = '/' %}
+  {% endif %}
+  {% if not base_path %}
+    {% set base_path = '/' %}
+  {% endif %}
+  {% set languages = [
+    {'code': '', 'flag': '🇮🇩', 'label': 'ID'},
+    {'code': 'en', 'flag': '🇬🇧', 'label': 'EN'},
+    {'code': 'ar', 'flag': '🇸🇦', 'label': 'AR'}
+  ] %}
+  {% set active_lang = lang or settings.DEFAULT_LANG %}
+  {% for option in languages %}
+    {% if option.code %}
+      {% if base_path == '/' %}
+        {% set target = '/' ~ option.code %}
+      {% else %}
+        {% set target = '/' ~ option.code ~ base_path %}
+      {% endif %}
+    {% else %}
+      {% set target = base_path %}
+    {% endif %}
+    {% if not target %}
+      {% set target = '/' %}
+    {% endif %}
+    {% set is_active = (active_lang == option.code) or (option.code == '' and active_lang not in ['en','ar']) %}
+    <a href="{{ target }}" class="lang-switcher__btn {% if is_active %}active{% endif %}" title="{{ option.label }}">
+      <span>{{ option.flag }}</span>
+    </a>
+  {% endfor %}
+</div>
