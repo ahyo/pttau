@@ -45,7 +45,13 @@ def get_footer_data(db, lang: str | None = None):
         )
         link_data = []
         for l in links:
-            link_data.append({"icon": l.icon, "url": l.url, "label": l.label})
+            link_data.append(
+                {
+                    "id": l.id,
+                    "html": l.html_content or "",
+                    "is_active": l.is_active,
+                }
+            )
         footer_data.append({"name": sec.name, "links": link_data})
     return footer_data
 

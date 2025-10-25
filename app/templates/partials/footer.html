@@ -4,25 +4,11 @@
       {% for section in footer_sections %}
       <div class="col-md-4 mb-4">
         <h5 class="fw-bold mb-3">{{ section.name }}</h5>
-        <ul class="list-unstyled">
+        <div class="small d-flex flex-column gap-2">
           {% for link in section.links %}
-          <li class="mb-2">
-            {% if link.icon %}
-            <i class="{{ link.icon }}"></i>
-            {% endif %} {% if link.url %}
-            <a
-              href="{{ link.url }}"
-              class="text-white text-decoration-none"
-              target="_blank"
-            >
-              {{ link.label }}
-            </a>
-            {% else %}
-            <span>{{ link.label }}</span>
-            {% endif %}
-          </li>
+          <div>{{ link.html | safe }}</div>
           {% endfor %}
-        </ul>
+        </div>
       </div>
       {% endfor %}
     </div>

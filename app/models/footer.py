@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, Text
 from sqlalchemy.orm import relationship
 from app.db import Base
 
@@ -23,9 +23,7 @@ class FooterLink(Base):
         nullable=False,
         index=True,
     )
-    url = Column(String(255))
-    icon = Column(String(50))
     is_active = Column(Boolean, nullable=False, default=True)
     sort_order = Column(Integer, nullable=False, default=0)
     section = relationship("FooterSection", back_populates="links")
-    label = Column(String(150), nullable=False)
+    html_content = Column(Text, nullable=False, default="")

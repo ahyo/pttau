@@ -85,20 +85,18 @@ async def link_create(
     sid: int,
     request: Request,
     db: Session = Depends(get_db),
-    icon: str = Form(""),
-    url: str = Form(""),
     sort_order: int = Form(0),
-    label: str = Form(""),
+    html_content: str = Form(""),
+    is_active: str = Form("on"),
 ):
     if not require_admin(request):
         return RedirectResponse("/admin/login", 302)
 
     link = FooterLink(
         section_id=sid,
-        icon=icon or None,
-        url=url or None,
         sort_order=sort_order,
-        label=label.strip() or "(no label)",
+        html_content=html_content.strip(),
+        is_active=is_active == "on",
     )
     db.add(link)
     db.commit()
@@ -173,11 +171,9 @@ async def link_edit(
     lid: int,
     request: Request,
     db: Session = Depends(get_db),
-    icon: str = Form(""),
-    url: str = Form(""),
     sort_order: int = Form(0),
     is_active: str = Form("off"),
-    label: str = Form(""),
+    html_content: str = Form(""),
 ):
     if not require_admin(request):
         return RedirectResponse("/admin/login", 302)
@@ -188,11 +184,9 @@ async def link_edit(
         return RedirectResponse(f"/admin/footer/{sid}/links?msg=Not%20found", 302)
 
     # update properti link
-    link.icon = icon or None
-    link.url = url or None
     link.sort_order = sort_order
     link.is_active = is_active == "on"
-    link.label = label.strip() or link.label
+    link.html_content = html_content.strip()
 
     db.commit()
     return RedirectResponse(f"/admin/footer/{sid}/links?msg=Updated", 302)
