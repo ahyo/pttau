@@ -1,5 +1,8 @@
-{% extends "layouts/base.html" %} {% block title %}Edit Footer Section{%
-endblock %} {% block content %}
+{% extends "layouts/base.html" %}
+{% block title %}Edit Footer Section{% endblock %}
+{% block content %}
+{% set translations = translation_form if (translation_form is defined and translation_form) else {} %}
+{% set translation_langs = translation_langs if translation_langs is defined else language_options[1:] %}
 <div class="container py-4">
   <h1 class="h5 mb-3">Edit Section #{{ section.id }}</h1>
   <form method="post">
@@ -15,8 +18,7 @@ endblock %} {% block content %}
       </div>
       <div class="col-md-2 d-flex align-items-end">
         <div class="form-check">
-          <input class="form-check-input" type="checkbox" name="is_active"
-          id="is_active" {{ 'checked' if section.is_active else '' }}>
+          <input class="form-check-input" type="checkbox" name="is_active" id="is_active" {{ 'checked' if section.is_active else '' }}>
           <label class="form-check-label" for="is_active">Active</label>
         </div>
       </div>
@@ -33,6 +35,26 @@ endblock %} {% block content %}
           value="{{ section.name }}"
           required
         />
+      </div>
+    </div>
+
+    <hr class="my-4" />
+
+    <div>
+      <h2 class="h6 mb-3">Terjemahan Nama Section</h2>
+      <div class="row g-3">
+        {% for lang in translation_langs %}
+        {% set lang_value = translations.get(lang.code, '') %}
+        <div class="col-md-6">
+          <label class="form-label">{{ lang.label }}</label>
+          <input
+            name="name_{{ lang.code }}"
+            class="form-control"
+            value="{{ lang_value }}"
+            {% if lang.code == 'ar' %}dir="rtl"{% endif %}
+          />
+        </div>
+        {% endfor %}
       </div>
     </div>
 

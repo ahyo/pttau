@@ -1,43 +1,39 @@
-<div class="lang-switcher">
-  {% set current_path = request.url.path %}
-  {% if current_path != '/' %}
-    {% set current_path = current_path.rstrip('/') %}
-  {% endif %}
-  {% set base_path = current_path %}
-  {% if base_path.startswith('/en/') %}
-    {% set base_path = base_path[3:] %}
-  {% elif base_path == '/en' %}
-    {% set base_path = '/' %}
-  {% elif base_path.startswith('/ar/') %}
-    {% set base_path = base_path[3:] %}
-  {% elif base_path == '/ar' %}
-    {% set base_path = '/' %}
-  {% endif %}
-  {% if not base_path %}
-    {% set base_path = '/' %}
-  {% endif %}
-  {% set languages = [
-    {'code': '', 'flag': '🇮🇩', 'label': 'ID'},
-    {'code': 'en', 'flag': '🇬🇧', 'label': 'EN'},
-    {'code': 'ar', 'flag': '🇸🇦', 'label': 'AR'}
-  ] %}
-  {% set active_lang = lang or settings.DEFAULT_LANG %}
-  {% for option in languages %}
-    {% if option.code %}
-      {% if base_path == '/' %}
-        {% set target = '/' ~ option.code %}
-      {% else %}
-        {% set target = '/' ~ option.code ~ base_path %}
+{% set active_lang = lang or settings.DEFAULT_LANG %}
+{% set options = language_options %}
+{% set active_option = options | selectattr('code', 'equalto', active_lang) | list | first %}
+<div class="lang-switcher" data-lang-switcher>
+  <button type="button" class="lang-switcher__btn lang-switcher__toggle" data-lang-toggle>
+    <span>{{ active_option.flag if active_option else '🌐' }}</span>
+  </button>
+  <div class="lang-switcher__menu" data-lang-menu>
+    {% for option in options %}
+      {% if option.code != active_lang %}
+      <a href="/set-lang/{{ option.code }}" class="lang-switcher__btn" data-lang-option>
+        <span>{{ option.flag }}</span>
+        <span class="visually-hidden">{{ option.label }}</span>
+      </a>
       {% endif %}
-    {% else %}
-      {% set target = base_path %}
-    {% endif %}
-    {% if not target %}
-      {% set target = '/' %}
-    {% endif %}
-    {% set is_active = (active_lang == option.code) or (option.code == '' and active_lang not in ['en','ar']) %}
-    <a href="{{ target }}" class="lang-switcher__btn {% if is_active %}active{% endif %}" title="{{ option.label }}">
-      <span>{{ option.flag }}</span>
-    </a>
-  {% endfor %}
+    {% endfor %}
+  </div>
 </div>
+<script>
+  (function(){
+    const container = document.querySelector('[data-lang-switcher]');
+    if(!container || container.dataset.bound){return;}
+    container.dataset.bound = '1';
+    const toggle = container.querySelector('[data-lang-toggle]');
+    const menu = container.querySelector('[data-lang-menu]');
+    const closeMenu = ()=>{menu.classList.remove('is-open');};
+    toggle.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      menu.classList.toggle('is-open');
+    });
+    menu.addEventListener('click', (e)=>{
+      e.stopPropagation();
+    });
+    menu.querySelectorAll('[data-lang-option]').forEach((option)=>{
+      option.addEventListener('click', closeMenu);
+    });
+    document.addEventListener('click', closeMenu);
+  })();
+</script>

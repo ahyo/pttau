@@ -5,8 +5,14 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 from app.db import get_db
-from app.models.menu import MenuItem
+from app.models.menu import MenuItem, MenuItemTranslation
 from app.ui import common_ctx
+from app.services.translator import (
+    translate_payload,
+    SUPPORTED_LANGS,
+    LANG_LABELS,
+    collect_translation_inputs,
+)
 
 templates = Jinja2Templates(directory="app/templates")
 router = APIRouter(tags=["admin"])
@@ -14,6 +20,47 @@ router = APIRouter(tags=["admin"])
 
 def require_admin(request: Request):
     return request.session.get("admin")
+
+
+def _clean(value: str | None) -> str | None:
+    if value is None:
+        return None
+    trimmed = value.strip()
+    return trimmed or None
+
+
+def _ensure_menu_translations(item: MenuItem, data: dict[str, str | None], db: Session):
+    existing = {tr.lang: tr for tr in item.translations}
+    for lang in SUPPORTED_LANGS:
+        value = _clean(data.get(lang))
+        if value is None:
+            value = item.label
+        tr = existing.get(lang)
+        if tr:
+            if value is not None:
+                tr.label = value
+            continue
+        db.add(
+            MenuItemTranslation(menu_item=item, lang=lang, label=value or item.label)
+        )
+
+
+def _auto_menu_translations(label: str | None) -> dict[str, str | None]:
+    payload = {"label": label or ""}
+    translated = translate_payload(payload, SUPPORTED_LANGS)
+    return {lang: data.get("label") for lang, data in translated.items()}
+
+
+def _build_translation_form(item: MenuItem | None = None) -> dict[str, str]:
+    form: dict[str, str] = {}
+    if not item:
+        for lang in SUPPORTED_LANGS:
+            form[lang] = ""
+        return form
+    for lang in SUPPORTED_LANGS:
+        tr = item.get_translation(lang)
+        form[lang] = tr.label if tr and tr.label else ""
+    return form
 
 
 # LIST
@@ -106,6 +153,10 @@ async def menu_create(
         label=label or "Menu",
     )
     db.add(item)
+    db.flush()
+
+    translations = _auto_menu_translations(item.label)
+    _ensure_menu_translations(item, translations, db)
 
     db.commit()
     return RedirectResponse("/admin/menu?msg=created", 302)
@@ -130,7 +181,16 @@ async def menu_edit_form(mid: int, request: Request, db: Session = Depends(get_d
     )
     return templates.TemplateResponse(
         "admin/menu_form.html",
-        {"request": request, "item": item, "parents": parents},
+        {
+            "request": request,
+            "item": item,
+            "parents": parents,
+            "translation_form": _build_translation_form(item),
+            "translation_langs": [
+                {"code": lang, "label": LANG_LABELS.get(lang, lang.upper())}
+                for lang in SUPPORTED_LANGS
+            ],
+        },
     )
 
 
@@ -156,6 +216,8 @@ async def menu_edit(
     item = db.get(MenuItem, mid)
     if not item:
         return RedirectResponse("/admin/menu?msg=not_found", 302)
+    form_payload = await request.form()
+    translation_form = collect_translation_inputs(form_payload, ["label"])
 
     try:
         pid = int(parent_id) if parent_id.strip() else None
@@ -172,6 +234,14 @@ async def menu_edit(
     item.requires_admin = requires_admin == "on"
     item.icon = icon or None
     item.label = label or item.label or "Menu"
+
+    auto_translations = _auto_menu_translations(item.label)
+    merged: dict[str, str | None] = {}
+    for lang in SUPPORTED_LANGS:
+        manual_val = translation_form.get(lang, {}).get("label")
+        cleaned = _clean(manual_val)
+        merged[lang] = cleaned if cleaned else auto_translations.get(lang)
+    _ensure_menu_translations(item, merged, db)
 
     db.commit()
     return RedirectResponse("/admin/menu?msg=updated", 302)

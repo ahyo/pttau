@@ -3,14 +3,105 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 from app.db import get_db
-from app.models.footer import FooterSection, FooterLink
+from app.models.footer import (
+    FooterSection,
+    FooterLink,
+    FooterSectionTranslation,
+    FooterLinkTranslation,
+)
 from app.ui import templates, common_ctx
+from app.services.translator import (
+    translate_payload,
+    SUPPORTED_LANGS,
+    LANG_LABELS,
+    collect_translation_inputs,
+)
 
 router = APIRouter(tags=["admin"])
 
 
 def require_admin(request: Request):
     return request.session.get("admin")
+
+
+def _clean(value: str | None) -> str | None:
+    if value is None:
+        return None
+    trimmed = value.strip()
+    return trimmed or None
+
+
+def _auto_section(name: str | None):
+    payload = {"name": name}
+    return translate_payload(payload, SUPPORTED_LANGS)
+
+
+def _ensure_section_translations(
+    section: FooterSection,
+    translations: dict[str, str | None],
+    db: Session,
+):
+    existing = {tr.lang: tr for tr in section.translations}
+    for lang in SUPPORTED_LANGS:
+        value = _clean(translations.get(lang)) if isinstance(translations, dict) else None
+        if value is None:
+            value = section.name
+        tr = existing.get(lang)
+        if tr:
+            if value is not None:
+                tr.name = value
+            continue
+        db.add(
+            FooterSectionTranslation(section=section, lang=lang, name=value)
+        )
+
+
+def _build_section_translation_form(section: FooterSection | None = None) -> dict[str, str]:
+    result: dict[str, str] = {}
+    for lang in SUPPORTED_LANGS:
+        if section:
+            tr = section.get_translation(lang)
+            result[lang] = tr.name if tr and tr.name else ""
+        else:
+            result[lang] = ""
+    return result
+
+
+def _auto_link(html: str | None):
+    payload = {"html_content": html}
+    return translate_payload(payload, SUPPORTED_LANGS)
+
+
+def _ensure_link_translations(
+    link: FooterLink,
+    translations: dict[str, str | None],
+    db: Session,
+):
+    existing = {tr.lang: tr for tr in link.translations}
+    for lang in SUPPORTED_LANGS:
+        value = translations.get(lang)
+        cleaned = _clean(value)
+        if cleaned is None:
+            cleaned = link.html_content
+        tr = existing.get(lang)
+        if tr:
+            if cleaned is not None:
+                tr.html_content = cleaned
+            continue
+        db.add(
+            FooterLinkTranslation(link=link, lang=lang, html_content=cleaned)
+        )
+
+
+def _build_link_translation_form(link: FooterLink | None = None) -> dict[str, str]:
+    result: dict[str, str] = {}
+    for lang in SUPPORTED_LANGS:
+        if link:
+            tr = link.get_translation(lang)
+            result[lang] = tr.html_content if tr and tr.html_content else ""
+        else:
+            result[lang] = ""
+    return result
 
 
 @router.get("/admin/footer", response_class=HTMLResponse)
@@ -55,6 +146,12 @@ async def section_create(
         return RedirectResponse("/admin/login", 302)
     s = FooterSection(sort_order=sort_order, name=name.strip() or "Section")
     db.add(s)
+    db.flush()
+
+    auto_translations = _auto_section(s.name)
+    mapped = {lang: data.get("name") for lang, data in auto_translations.items()}
+    _ensure_section_translations(s, mapped, db)
+
     db.commit()
     return RedirectResponse("/admin/footer", 302)
 
@@ -99,6 +196,15 @@ async def link_create(
         is_active=is_active == "on",
     )
     db.add(link)
+    db.flush()
+
+    auto_translations = _auto_link(link.html_content)
+    mapped = {
+        lang: data.get("html_content")
+        for lang, data in auto_translations.items()
+    }
+    _ensure_link_translations(link, mapped, db)
+
     db.commit()
 
     return RedirectResponse(f"/admin/footer/{sid}/links", 302)
@@ -114,7 +220,17 @@ async def section_edit_form(sid: int, request: Request, db: Session = Depends(ge
 
     return templates.TemplateResponse(
         "admin/footer_section_edit.html",
-        common_ctx(request, {"section": section}),
+        common_ctx(
+            request,
+            {
+                "section": section,
+                "translation_form": _build_section_translation_form(section),
+                "translation_langs": [
+                    {"code": lang, "label": LANG_LABELS.get(lang, lang.upper())}
+                    for lang in SUPPORTED_LANGS
+                ],
+            },
+        ),
     )
 
 
@@ -137,6 +253,23 @@ async def section_edit(
     section.sort_order = sort_order
     section.is_active = is_active == "on"
     section.name = name.strip() or section.name
+
+    form_payload = await request.form()
+    raw_translations = collect_translation_inputs(form_payload, ["name"])
+    manual_map = {
+        lang: _clean(raw_translations.get(lang, {}).get("name"))
+        for lang in SUPPORTED_LANGS
+    }
+    auto_map_raw = _auto_section(section.name)
+    auto_map = {
+        lang: _clean(data.get("name")) if isinstance(data, dict) else None
+        for lang, data in auto_map_raw.items()
+    }
+    merged_map = {
+        lang: (manual_map.get(lang) or auto_map.get(lang) or section.name)
+        for lang in SUPPORTED_LANGS
+    }
+    _ensure_section_translations(section, merged_map, db)
 
     db.commit()
     return RedirectResponse("/admin/footer?msg=Updated", 302)
@@ -161,7 +294,18 @@ async def link_edit_form(
 
     return templates.TemplateResponse(
         "admin/footer_link_edit.html",
-        common_ctx(request, {"section": section, "link": link}),
+        common_ctx(
+            request,
+            {
+                "section": section,
+                "link": link,
+                "translation_form": _build_link_translation_form(link),
+                "translation_langs": [
+                    {"code": lang, "label": LANG_LABELS.get(lang, lang.upper())}
+                    for lang in SUPPORTED_LANGS
+                ],
+            },
+        ),
     )
 
 
@@ -187,6 +331,23 @@ async def link_edit(
     link.sort_order = sort_order
     link.is_active = is_active == "on"
     link.html_content = html_content.strip()
+
+    form_payload = await request.form()
+    raw_translations = collect_translation_inputs(form_payload, ["html_content"])
+    manual_map = {
+        lang: _clean(raw_translations.get(lang, {}).get("html_content"))
+        for lang in SUPPORTED_LANGS
+    }
+    auto_map_raw = _auto_link(link.html_content)
+    auto_map = {
+        lang: _clean(data.get("html_content")) if isinstance(data, dict) else None
+        for lang, data in auto_map_raw.items()
+    }
+    merged_map = {
+        lang: (manual_map.get(lang) or auto_map.get(lang) or link.html_content)
+        for lang in SUPPORTED_LANGS
+    }
+    _ensure_link_translations(link, merged_map, db)
 
     db.commit()
     return RedirectResponse(f"/admin/footer/{sid}/links?msg=Updated", 302)

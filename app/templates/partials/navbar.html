@@ -167,38 +167,43 @@
         <li class="nav-item">
           <a class="nav-link text-white text-uppercase" href="/login">Login</a>
         </li>
-        {% endif %} {% if admin %}
-        <li class="nav-item dropdown">
-          <a
-            class="nav-link dropdown-toggle text-uppercase"
-            href="#"
-            data-bs-toggle="dropdown"
-            >Admin</a
-          >
-          <ul class="dropdown-menu dropdown-menu-end">
-            <li><a class="dropdown-item" href="/">Dashboard</a></li>
-            <li>
-              <a class="dropdown-item" href="/admin/menu">Menu</a>
-            </li>
-            <li>
-              <a class="dropdown-item" href="/admin/carousel">Carousel</a>
-            </li>
-            <li><a class="dropdown-item" href="/admin/pages">Pages</a></li>
-
-            <li><a class="dropdown-item" href="/admin/footer">Footer</a></li>
-            <li>
-              <a class="dropdown-item" href="/admin/products">Products</a>
-            </li>
-            <li><a class="dropdown-item" href="/admin/orders">Orders</a></li>
-            <li><hr class="dropdown-divider" /></li>
-            <li>
-              <a class="dropdown-item" href="/admin/password">Ganti Password</a>
-            </li>
-            <li><a class="dropdown-item" href="/admin/logout">Logout</a></li>
-          </ul>
-        </li>
         {% endif %}
       </ul>
     </div>
   </div>
 </nav>
+{% if admin %}
+<div class="admin-fab" data-admin-fab>
+  <button type="button" class="admin-fab__toggle" data-admin-toggle>
+    <i class="bi bi-gear"></i>
+  </button>
+  <div class="admin-fab__menu" data-admin-menu>
+    <a class="admin-fab__link" href="/">Dashboard</a>
+    <a class="admin-fab__link" href="/admin/menu">Menu</a>
+    <a class="admin-fab__link" href="/admin/carousel">Carousel</a>
+    <a class="admin-fab__link" href="/admin/pages">Pages</a>
+    <a class="admin-fab__link" href="/admin/footer">Footer</a>
+    <a class="admin-fab__link" href="/admin/products">Products</a>
+    <a class="admin-fab__link" href="/admin/orders">Orders</a>
+    <hr class="admin-fab__divider" />
+    <a class="admin-fab__link" href="/admin/password">Ganti Password</a>
+    <a class="admin-fab__link" href="/admin/logout">Logout</a>
+  </div>
+</div>
+<script>
+  (function(){
+    const container = document.querySelector('[data-admin-fab]');
+    if(!container || container.dataset.bound){return;}
+    container.dataset.bound = '1';
+    const toggle = container.querySelector('[data-admin-toggle]');
+    const menu = container.querySelector('[data-admin-menu]');
+    const closeMenu = ()=> menu.classList.remove('is-open');
+    toggle.addEventListener('click', (evt)=>{
+      evt.stopPropagation();
+      menu.classList.toggle('is-open');
+    });
+    menu.addEventListener('click', (evt)=> evt.stopPropagation());
+    document.addEventListener('click', closeMenu);
+  })();
+</script>
+{% endif %}

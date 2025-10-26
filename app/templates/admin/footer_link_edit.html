@@ -1,5 +1,8 @@
-{% extends "layouts/base.html" %} {% block title %}Edit Footer Link{% endblock
-%} {% block content %}
+{% extends "layouts/base.html" %}
+{% block title %}Edit Footer Link{% endblock %}
+{% block content %}
+{% set translations = translation_form if (translation_form is defined and translation_form) else {} %}
+{% set translation_langs = translation_langs if translation_langs is defined else language_options[1:] %}
 <div class="container py-4">
   <h1 class="h5 mb-3">Edit Link #{{ link.id }} (Section #{{ section.id }})</h1>
   <form method="post">
@@ -15,8 +18,7 @@
       </div>
       <div class="col-md-3 d-flex align-items-end">
         <div class="form-check form-switch">
-          <input class="form-check-input" type="checkbox" name="is_active"
-          id="is_active" {{ 'checked' if link.is_active else '' }}>
+          <input class="form-check-input" type="checkbox" name="is_active" id="is_active" {{ 'checked' if link.is_active else '' }}>
           <label class="form-check-label" for="is_active">Tampilkan</label>
         </div>
       </div>
@@ -32,13 +34,30 @@
       </div>
     </div>
 
+    <hr class="my-4" />
+
+    <div>
+      <h2 class="h6 mb-3">Terjemahan Konten HTML</h2>
+      <p class="text-muted small">Sistem mencoba menerjemahkan HTML Anda. Silakan pastikan tag tetap valid.</p>
+      <div class="row g-3">
+        {% for lang in translation_langs %}
+        {% set lang_html = translations.get(lang.code, '') %}
+        <div class="col-12">
+          <label class="form-label">{{ lang.label }}</label>
+          <textarea
+            name="html_content_{{ lang.code }}"
+            class="form-control"
+            rows="4"
+            {% if lang.code == 'ar' %}dir="rtl"{% endif %}
+          >{{ lang_html }}</textarea>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
     <div class="mt-4 d-flex gap-2">
       <button class="btn btn-primary">Save</button>
-      <a
-        class="btn btn-outline-secondary"
-        href="/admin/footer/{{ section.id }}/links"
-        >Cancel</a
-      >
+      <a class="btn btn-outline-secondary" href="/admin/footer/{{ section.id }}/links">Cancel</a>
     </div>
   </form>
 </div>

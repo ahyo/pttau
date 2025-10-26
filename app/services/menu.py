@@ -1,11 +1,14 @@
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from app.models.menu import MenuItem
+from app.ui import localized_attr
 
 
 def get_menu_tree(db, lang: str, position: str = "header", admin_logged: bool = False):
     items = (
         db.execute(
             select(MenuItem)
+            .options(selectinload(MenuItem.translations))
             .where(
                 MenuItem.position.in_([position, "both"]), MenuItem.is_active == True
             )
@@ -31,7 +34,7 @@ def get_menu_tree(db, lang: str, position: str = "header", admin_logged: bool = 
     def build(node):
         return {
             "id": node.id,
-            "label": node.label or "Menu",
+            "label": localized_attr(node, lang, "label") or "Menu",
             "url": node.url,
             "is_external": node.is_external,
             "target": node.target or ("_blank" if node.is_external else "_self"),

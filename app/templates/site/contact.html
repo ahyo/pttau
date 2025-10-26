@@ -1,5 +1,92 @@
 {% extends 'layouts/base.html' %}
-{% block title %}Contact — {{ settings.APP_NAME if settings else 'Company' }}{% endblock %}
+{% set translations = {
+  'id': {
+    'page_title': 'Kontak',
+    'breadcrumb': 'Kontak',
+    'hero_title': 'Kontak',
+    'hero_desc': 'Kami siap membantu Anda. Lengkapi formulir di bawah ini untuk menghubungi tim Wulung AeroTech.',
+    'form_heading': 'Hubungi Kami',
+    'label_name': 'Nama',
+    'label_email': 'Email',
+    'label_phone': 'Telepon',
+    'label_subject': 'Subjek',
+    'label_message': 'Pesan',
+    'submit': 'Kirim Pesan',
+    'breadcrumb_home': 'Beranda'
+  },
+  'en': {
+    'page_title': 'Contact',
+    'breadcrumb': 'Contact',
+    'hero_title': 'Contact',
+    'hero_desc': 'We are ready to help. Fill out the form below to reach the Wulung AeroTech team.',
+    'form_heading': 'Contact Us',
+    'label_name': 'Name',
+    'label_email': 'Email',
+    'label_phone': 'Phone',
+    'label_subject': 'Subject',
+    'label_message': 'Message',
+    'submit': 'Send Message',
+    'breadcrumb_home': 'Home'
+  },
+  'ar': {
+    'page_title': 'اتصل بنا',
+    'breadcrumb': 'اتصل بنا',
+    'hero_title': 'اتصل بنا',
+    'hero_desc': 'نحن جاهزون لمساعدتك. عبئ النموذج أدناه للتواصل مع فريق وولونغ إيروتيك.',
+    'form_heading': 'تواصل معنا',
+    'label_name': 'الاسم',
+    'label_email': 'البريد الإلكتروني',
+    'label_phone': 'الهاتف',
+    'label_subject': 'الموضوع',
+    'label_message': 'الرسالة',
+    'submit': 'إرسال الرسالة',
+    'breadcrumb_home': 'الرئيسية'
+  },
+  'ja': {
+    'page_title': 'お問い合わせ',
+    'breadcrumb': 'お問い合わせ',
+    'hero_title': 'お問い合わせ',
+    'hero_desc': '私たちはいつでもお手伝いします。下記のフォームに入力して、Wulung AeroTech チームにご連絡ください。',
+    'form_heading': 'お問い合わせ',
+    'label_name': 'お名前',
+    'label_email': 'メールアドレス',
+    'label_phone': '電話番号',
+    'label_subject': '件名',
+    'label_message': 'メッセージ',
+    'submit': '送信する',
+    'breadcrumb_home': 'ホーム'
+  },
+  'ko': {
+    'page_title': '문의하기',
+    'breadcrumb': '문의하기',
+    'hero_title': '문의하기',
+    'hero_desc': '언제든지 도와드릴 준비가 되어 있습니다. 아래 양식을 작성하여 Wulung AeroTech 팀에 연락하세요.',
+    'form_heading': '문의하기',
+    'label_name': '이름',
+    'label_email': '이메일',
+    'label_phone': '전화번호',
+    'label_subject': '제목',
+    'label_message': '메시지',
+    'submit': '메시지 보내기',
+    'breadcrumb_home': '홈'
+  },
+  'zh-cn': {
+    'page_title': '联系我们',
+    'breadcrumb': '联系我们',
+    'hero_title': '联系我们',
+    'hero_desc': '我们随时准备为您服务。填写下方表格，与 Wulung AeroTech 团队取得联系。',
+    'form_heading': '联系我们',
+    'label_name': '姓名',
+    'label_email': '电子邮箱',
+    'label_phone': '电话',
+    'label_subject': '主题',
+    'label_message': '留言',
+    'submit': '发送信息',
+    'breadcrumb_home': '首页'
+  }
+} %}
+{% set t = translations.get(lang, translations['id']) %}
+{% block title %}{{ t.page_title }} — {{ settings.APP_NAME if settings else 'Company' }}{% endblock %}
 {% block content %}
 <section class="py-5 bg-dark text-white" style="background: linear-gradient(135deg, #0f172a, #1d4ed8);">
   <div class="container py-4">
@@ -8,16 +95,16 @@
         <nav aria-label="breadcrumb" class="mb-3">
           <ol class="breadcrumb mb-0">
             <li class="breadcrumb-item">
-              <a class="text-white-50 text-decoration-none" href="/">Home</a>
+              <a class="text-white-50 text-decoration-none" href="/">{{ t.breadcrumb_home }}</a>
             </li>
             <li class="breadcrumb-item text-white active" aria-current="page">
-              Kontak
+              {{ t.breadcrumb }}
             </li>
           </ol>
         </nav>
-        <h1 class="display-5 fw-bold mb-3" data-aos="fade-right">Kontak</h1>
+        <h1 class="display-5 fw-bold mb-3" data-aos="fade-right">{{ t.hero_title }}</h1>
         <p class="lead mb-0 text-white-50" data-aos="fade-right" data-aos-delay="100">
-          Kami siap membantu Anda. Lengkapi formulir di bawah ini untuk menghubungi tim Wulung AeroTech.
+          {{ t.hero_desc }}
         </p>
       </div>
     </div>
@@ -26,30 +113,30 @@
 
 <section class="py-5">
   <div class="container">
-    <h2 class="h4 mb-3 text-muted">Hubungi Kami</h2>
+    <h2 class="h4 mb-3 text-muted">{{ t.form_heading }}</h2>
     <form class="row g-3" method="post" action="/api/contact">
       <div class="col-md-6">
-        <label class="form-label">Name</label>
+        <label class="form-label">{{ t.label_name }}</label>
         <input type="text" name="name" class="form-control" required>
       </div>
       <div class="col-md-6">
-        <label class="form-label">Email</label>
+        <label class="form-label">{{ t.label_email }}</label>
         <input type="email" name="email" class="form-control" required>
       </div>
       <div class="col-md-6">
-        <label class="form-label">Phone</label>
+        <label class="form-label">{{ t.label_phone }}</label>
         <input type="text" name="phone" class="form-control">
       </div>
       <div class="col-12">
-        <label class="form-label">Subject</label>
+        <label class="form-label">{{ t.label_subject }}</label>
         <input type="text" name="subject" class="form-control">
       </div>
       <div class="col-12">
-        <label class="form-label">Message</label>
+        <label class="form-label">{{ t.label_message }}</label>
         <textarea name="message" class="form-control" rows="5" required></textarea>
       </div>
       <div class="col-12">
-        <button class="btn btn-primary">Kirim Pesan</button>
+        <button class="btn btn-primary">{{ t.submit }}</button>
       </div>
     </form>
   </div>

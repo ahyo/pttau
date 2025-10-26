@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from app.config import settings
 from app.db import get_db
@@ -24,6 +24,7 @@ async def catalog_list(request: Request, db: Session = Depends(get_db)):
     products = (
         db.execute(
             select(Product)
+            .options(selectinload(Product.translations))
             .where(Product.is_active == True)
             .order_by(Product.created_at.desc())
         )
@@ -53,6 +54,7 @@ async def catalog_detail(slug: str, request: Request, db: Session = Depends(get_
 
     product = db.execute(
         select(Product)
+        .options(selectinload(Product.translations))
         .where(Product.slug == slug, Product.is_active == True)
     ).scalar_one_or_none()
 

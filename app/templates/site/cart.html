@@ -39,7 +39,7 @@
                 {% for row in items %}
                 {% set item = row.item %}
                 {% set product = row.product %}
-                {% set display_name = row.name or product.slug %}
+                {% set display_name = product_text(product, lang, 'name') or product.slug %}
                 <tr>
                   <td>
                     <div class="d-flex align-items-center gap-3">

@@ -1,8 +1,14 @@
 {% extends "layouts/base.html" %}
-{% block title %}{{ (page.meta_title or page.title) ~ " — " ~ settings.APP_NAME }}{% endblock %}
+{% set localized_title = localized_attr(page, lang, 'title') or page.title %}
+{% set localized_excerpt = localized_attr(page, lang, 'excerpt') or page.excerpt %}
+{% set localized_body = localized_attr(page, lang, 'body') or page.body %}
+{% set localized_meta_title = localized_attr(page, lang, 'meta_title') or page.meta_title %}
+{% set localized_meta_desc = localized_attr(page, lang, 'meta_desc') or page.meta_desc %}
+{% block title %}{{ (localized_meta_title or localized_title) ~ " — " ~ settings.APP_NAME }}{% endblock %}
+{% block meta_desc %}{{ localized_meta_desc or '' }}{% endblock %}
 {% block content %}
 {% if page.slug == "product" %}
-  {{ page.body | safe }}
+  {{ localized_body | safe }}
 {% else %}
 <section
   class="py-5 bg-dark text-white"
@@ -17,20 +23,20 @@
               <a class="text-white-50 text-decoration-none" href="/">Home</a>
             </li>
             <li class="breadcrumb-item text-white active" aria-current="page">
-              {{ page.title }}
+              {{ localized_title }}
             </li>
           </ol>
         </nav>
         <h1 class="display-5 fw-bold mb-3" data-aos="fade-right">
-          {{ page.title }}
+          {{ localized_title }}
         </h1>
-        {% if page.excerpt %}
+        {% if localized_excerpt %}
         <p
           class="lead mb-0 text-white-50"
           data-aos="fade-right"
           data-aos-delay="100"
         >
-          {{ page.excerpt }}
+          {{ localized_excerpt }}
         </p>
         {% endif %}
       </div>
@@ -40,7 +46,7 @@
 
 <section class="py-5">
   <div class="container">
-    <article class="content">{{ page.body | safe }}</article>
+    <article class="content">{{ localized_body | safe }}</article>
   </div>
 </section>
 {% endif %}

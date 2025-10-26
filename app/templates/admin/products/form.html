@@ -4,6 +4,8 @@
 {% set action = '/admin/products/create' if mode == 'create' else '/admin/products/' ~ product.id ~ '/edit' %}
 {% set data = form_data if form_data else {} %}
 {% set initial_image = (data.get('image_url') if data.get('image_url') else (product.image_url if product and product.image_url else '')) %}
+{% set translations = (translation_form if (translation_form is defined and translation_form) else {}) %}
+{% set translation_langs = translation_langs if translation_langs is defined else language_options[1:] %}
 
 <section class="py-5">
   <div class="container">
@@ -122,6 +124,79 @@
                   >{{ data.get('description', product.description if product else '') }}</textarea>
                 </div>
               </div>
+
+              {% if mode == 'edit' %}
+              <hr class="my-4" />
+              <div>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <div>
+                    <h2 class="h6 mb-1">Terjemahan Bahasa</h2>
+                    <p class="text-muted small mb-0">Konten ini dibuat otomatis saat produk ditambahkan. Perbarui teks agar sesuai dengan istilah bisnis Anda.</p>
+                  </div>
+                </div>
+                <ul class="nav nav-pills mb-3" id="productTranslationTabs" role="tablist">
+                  {% for lang in translation_langs %}
+                  {% set is_active = loop.index == 1 %}
+                  <li class="nav-item" role="presentation">
+                    <button
+                      class="nav-link {% if is_active %}active{% endif %}"
+                      id="tab-{{ lang.code }}"
+                      data-bs-toggle="pill"
+                      data-bs-target="#pane-{{ lang.code }}"
+                      type="button"
+                      role="tab"
+                      aria-controls="pane-{{ lang.code }}"
+                      aria-selected="{{ 'true' if is_active else 'false' }}"
+                    >{{ lang.label }}</button>
+                  </li>
+                  {% endfor %}
+                </ul>
+                <div class="tab-content" id="productTranslationPanes">
+                  {% for lang in translation_langs %}
+                  {% set is_active = loop.index == 1 %}
+                  {% set lang_data = translations.get(lang.code, {}) %}
+                  <div
+                    class="tab-pane fade {% if is_active %}show active{% endif %}"
+                    id="pane-{{ lang.code }}"
+                    role="tabpanel"
+                    aria-labelledby="tab-{{ lang.code }}"
+                  >
+                    <div class="row g-3">
+                      <div class="col-12">
+                        <label class="form-label">Nama Produk ({{ lang.label }})</label>
+                        <input
+                          name="name_{{ lang.code }}"
+                          type="text"
+                          class="form-control"
+                          value="{{ lang_data.get('name', '') }}"
+                          {% if lang.code == 'ar' %}dir="rtl"{% endif %}
+                        />
+                      </div>
+                      <div class="col-12">
+                        <label class="form-label">Deskripsi Singkat ({{ lang.label }})</label>
+                        <input
+                          name="short_description_{{ lang.code }}"
+                          type="text"
+                          class="form-control"
+                          value="{{ lang_data.get('short_description', '') }}"
+                          {% if lang.code == 'ar' %}dir="rtl"{% endif %}
+                        />
+                      </div>
+                      <div class="col-12">
+                        <label class="form-label">Deskripsi Lengkap ({{ lang.label }})</label>
+                        <textarea
+                          name="description_{{ lang.code }}"
+                          class="form-control"
+                          rows="6"
+                          {% if lang.code == 'ar' %}dir="rtl"{% endif %}
+                        >{{ lang_data.get('description', '') }}</textarea>
+                      </div>
+                    </div>
+                  </div>
+                  {% endfor %}
+                </div>
+              </div>
+              {% endif %}
 
               <div class="d-flex justify-content-end gap-3 mt-4">
                 <a class="btn btn-light" href="/admin/products">Batal</a>

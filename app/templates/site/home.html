@@ -20,6 +20,9 @@ endblock %} {% block content %}
 
     <div class="carousel-inner">
       {% for slide in slides %}
+      {% set slide_title = localized_attr(slide, lang, 'title') %}
+      {% set slide_subtitle = localized_attr(slide, lang, 'subtitle') %}
+      {% set slide_cta = localized_attr(slide, lang, 'cta_text') %}
       <div
         class="carousel-item hero-slide {{ 'active' if loop.first else '' }}"
       >
@@ -37,24 +40,24 @@ endblock %} {% block content %}
         <img
           src="{{ slide.media_path }}"
           class="d-block w-100"
-          alt="{{ slide.title or 'Slide' }}"
+          alt="{{ slide_title or 'Slide' }}"
         />
         {% endif %}
         <div class="hero-overlay"></div>
-        {% if slide.title or slide.subtitle or (slide.cta_text and slide.cta_url) %}
+        {% if slide_title or slide_subtitle or (slide_cta and slide.cta_url) %}
         <div
           class="carousel-caption d-flex align-items-center h-100 px-3 px-md-4"
         >
           <div class="hero-caption">
-            {% if slide.title %}
+            {% if slide_title %}
             <h1 class="hero-title" data-aos="fade-up" data-aos-delay="100">
-              {{ slide.title }}
+              {{ slide_title }}
             </h1>
-            {% endif %} {% if slide.subtitle %}
+            {% endif %} {% if slide_subtitle %}
             <div class="hero-subtitle" data-aos="fade-up" data-aos-delay="200">
-              {{ slide.subtitle | safe }}
+              {{ slide_subtitle | safe }}
             </div>
-            {% endif %} {% if slide.cta_text and slide.cta_url %}
+            {% endif %} {% if slide_cta and slide.cta_url %}
             <a
               href="{{ slide.cta_url }}"
               class="btn btn-primary btn-cta mt-3"
@@ -62,7 +65,7 @@ endblock %} {% block content %}
               data-aos="zoom-in"
               data-aos-delay="300"
             >
-              {{ slide.cta_text }}
+              {{ slide_cta }}
             </a>
             {% endif %}
           </div>
@@ -97,11 +100,17 @@ endblock %} {% block content %}
 <section class="section-intro py-5">
   <div class="container">
     <div class="row align-items-center g-4">
-      {% if section_home_1 and section_home_1.body %}
-        {{ section_home_1.body | safe }}
+      {% if section_home_1 %}
+        {% set sec1 = localized_attr(section_home_1, lang, 'body') %}
+        {% if sec1 %}
+          {{ sec1 | safe }}
+        {% endif %}
       {% endif %}
-      {% if section_home_2 and section_home_2.body %}
-        {{ section_home_2.body | safe }}
+      {% if section_home_2 %}
+        {% set sec2 = localized_attr(section_home_2, lang, 'body') %}
+        {% if sec2 %}
+          {{ sec2 | safe }}
+        {% endif %}
       {% endif %}
     </div>
   </div>
@@ -112,13 +121,19 @@ endblock %} {% block content %}
   <div class="container">
     <div class="row g-4">
       <!-- Capabilities -->
-      {% if kapabilitas_section and kapabilitas_section.body %}
-        {{ kapabilitas_section.body | safe }}
+      {% if kapabilitas_section %}
+        {% set capa = localized_attr(kapabilitas_section, lang, 'body') %}
+        {% if capa %}
+          {{ capa | safe }}
+        {% endif %}
       {% endif %}
 
       <!-- Highlights -->
-      {% if highlight_section and highlight_section.body %}
-        {{ highlight_section.body | safe }}
+      {% if highlight_section %}
+        {% set highlight = localized_attr(highlight_section, lang, 'body') %}
+        {% if highlight %}
+          {{ highlight | safe }}
+        {% endif %}
       {% endif %}
     </div>
   </div>

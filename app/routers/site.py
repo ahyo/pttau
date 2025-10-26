@@ -7,7 +7,7 @@ from app.models.page import Page
 from app.services.content import get_page_by_slug
 from app.db import get_db
 from app.config import settings
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 from app.ui import active_lang, common_ctx, templates
 
 router = APIRouter()
@@ -30,7 +30,11 @@ async def sitemap(request: Request, db: Session = Depends(get_db)):
 
 
 def get_section(db: Session, slug: str):
-    return db.execute(select(Page).where(Page.slug == slug)).scalar_one_or_none()
+    return db.execute(
+        select(Page)
+        .options(selectinload(Page.translations))
+        .where(Page.slug == slug)
+    ).scalar_one_or_none()
 
 
 @router.get("/", response_class=HTMLResponse)
@@ -45,6 +49,7 @@ async def home(request: Request, db: Session = Depends(get_db)):
     items = (
         db.execute(
             select(CarouselItem)
+            .options(selectinload(CarouselItem.translations))
             .where(CarouselItem.is_active == True)
             .order_by(CarouselItem.sort_order.asc(), CarouselItem.id.desc())
         )

@@ -26,7 +26,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from app.middleware.context import ContextInjectorMiddleware
 
 # s
-VALID_LANGS = {"id", "en", "ar"}
+VALID_LANGS = {"id", "en", "ar", "ja", "ko", "zh-cn"}
 
 os.makedirs("app/logs", exist_ok=True)
 logging.basicConfig(

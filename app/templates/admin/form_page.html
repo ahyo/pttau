@@ -3,6 +3,8 @@
 {% block content %}
 {% set data = form_data if form_data else {} %}
 {% set current = page if page else None %}
+{% set translations = translation_form if (translation_form is defined and translation_form) else {} %}
+{% set translation_langs = translation_langs if translation_langs is defined else language_options[1:] %}
 <section class="py-4">
   <div class="container">
     <h1 class="h5 mb-3">{{ 'Create' if mode=='create' else 'Edit' }} Page</h1>
@@ -81,6 +83,94 @@
             class="form-control"
             value="{{ data.get('meta_desc', current.meta_desc if current else '') }}"
           >
+        </div>
+      </div>
+
+      <hr class="my-4">
+
+      <div>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <h2 class="h6 mb-1">Terjemahan Konten</h2>
+            <p class="text-muted small mb-0">Teks berikut dihasilkan otomatis dari bahasa Indonesia. Silakan perbaiki agar sesuai gaya komunikasi Anda.</p>
+          </div>
+        </div>
+        <ul class="nav nav-pills mb-3" id="pageTranslationTabs" role="tablist">
+          {% for lang in translation_langs %}
+          {% set is_active = loop.index == 1 %}
+          <li class="nav-item" role="presentation">
+            <button
+              class="nav-link {% if is_active %}active{% endif %}"
+              id="page-tab-{{ lang.code }}"
+              data-bs-toggle="pill"
+              data-bs-target="#page-pane-{{ lang.code }}"
+              type="button"
+              role="tab"
+              aria-controls="page-pane-{{ lang.code }}"
+              aria-selected="{{ 'true' if is_active else 'false' }}"
+            >{{ lang.label }}</button>
+          </li>
+          {% endfor %}
+        </ul>
+        <div class="tab-content" id="pageTranslationPanes">
+          {% for lang in translation_langs %}
+          {% set is_active = loop.index == 1 %}
+          {% set lang_data = translations.get(lang.code, {}) %}
+          <div
+            class="tab-pane fade {% if is_active %}show active{% endif %}"
+            id="page-pane-{{ lang.code }}"
+            role="tabpanel"
+            aria-labelledby="page-tab-{{ lang.code }}"
+          >
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label">Judul ({{ lang.label }})</label>
+                <input
+                  name="title_{{ lang.code }}"
+                  class="form-control"
+                  value="{{ lang_data.get('title', '') }}"
+                  {% if lang.code == 'ar' %}dir="rtl"{% endif %}
+                >
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Meta Title ({{ lang.label }})</label>
+                <input
+                  name="meta_title_{{ lang.code }}"
+                  class="form-control"
+                  value="{{ lang_data.get('meta_title', '') }}"
+                  {% if lang.code == 'ar' %}dir="rtl"{% endif %}
+                >
+              </div>
+              <div class="col-12">
+                <label class="form-label">Ringkasan ({{ lang.label }})</label>
+                <textarea
+                  name="excerpt_{{ lang.code }}"
+                  class="form-control"
+                  rows="3"
+                  {% if lang.code == 'ar' %}dir="rtl"{% endif %}
+                >{{ lang_data.get('excerpt', '') }}</textarea>
+              </div>
+              <div class="col-12">
+                <label class="form-label">Konten Halaman ({{ lang.label }})</label>
+                <textarea
+                  name="body_{{ lang.code }}"
+                  class="form-control"
+                  rows="10"
+                  {% if lang.code == 'ar' %}dir="rtl"{% endif %}
+                >{{ lang_data.get('body', '') }}</textarea>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Meta Description ({{ lang.label }})</label>
+                <input
+                  name="meta_desc_{{ lang.code }}"
+                  class="form-control"
+                  value="{{ lang_data.get('meta_desc', '') }}"
+                  {% if lang.code == 'ar' %}dir="rtl"{% endif %}
+                >
+              </div>
+            </div>
+          </div>
+          {% endfor %}
         </div>
       </div>
 

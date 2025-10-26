@@ -3,6 +3,8 @@
 {% block content %}
 {% set data = form_data if form_data else {} %}
 {% set current = item if item else None %}
+{% set translations = translation_form if (translation_form is defined and translation_form) else {} %}
+{% set translation_langs = translation_langs if translation_langs is defined else language_options[1:] %}
 <section class="py-4">
   <div class="container">
     <h1 class="h5 mb-3">{{ 'Create' if mode=='create' else 'Edit' }} Carousel Item</h1>
@@ -65,6 +67,76 @@
         <div class="col-md-6">
           <label class="form-label">CTA Text</label>
           <input name="cta_text" class="form-control" value="{{ data.get('cta_text', current.cta_text if current else '') }}" placeholder="Pelajari Lebih Lanjut">
+        </div>
+      </div>
+
+      <hr class="my-4">
+
+      <div>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <h2 class="h6 mb-1">Terjemahan Bahasa</h2>
+            <p class="text-muted small mb-0">Konten tombol dan teks akan otomatis diterjemahkan, namun silakan sesuaikan agar terdengar natural.</p>
+          </div>
+        </div>
+        <ul class="nav nav-tabs mb-3" role="tablist">
+          {% for lang in translation_langs %}
+          {% set is_active = loop.index == 1 %}
+          <li class="nav-item" role="presentation">
+            <button
+              class="nav-link {% if is_active %}active{% endif %}"
+              id="carousel-lang-{{ lang.code }}"
+              data-bs-toggle="tab"
+              data-bs-target="#carousel-pane-{{ lang.code }}"
+              type="button"
+              role="tab"
+              aria-controls="carousel-pane-{{ lang.code }}"
+              aria-selected="{{ 'true' if is_active else 'false' }}"
+            >{{ lang.label }}</button>
+          </li>
+          {% endfor %}
+        </ul>
+        <div class="tab-content">
+          {% for lang in translation_langs %}
+          {% set is_active = loop.index == 1 %}
+          {% set lang_data = translations.get(lang.code, {}) %}
+          <div
+            class="tab-pane fade {% if is_active %}show active{% endif %}"
+            id="carousel-pane-{{ lang.code }}"
+            role="tabpanel"
+            aria-labelledby="carousel-lang-{{ lang.code }}"
+          >
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label">Headline ({{ lang.label }})</label>
+                <input
+                  name="title_{{ lang.code }}"
+                  class="form-control"
+                  value="{{ lang_data.get('title', '') }}"
+                  {% if lang.code == 'ar' %}dir="rtl"{% endif %}
+                >
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">CTA Text ({{ lang.label }})</label>
+                <input
+                  name="cta_text_{{ lang.code }}"
+                  class="form-control"
+                  value="{{ lang_data.get('cta_text', '') }}"
+                  {% if lang.code == 'ar' %}dir="rtl"{% endif %}
+                >
+              </div>
+              <div class="col-12">
+                <label class="form-label">Sub Headline ({{ lang.label }})</label>
+                <textarea
+                  name="subtitle_{{ lang.code }}"
+                  class="form-control"
+                  rows="3"
+                  {% if lang.code == 'ar' %}dir="rtl"{% endif %}
+                >{{ lang_data.get('subtitle', '') }}</textarea>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
         </div>
       </div>
 

@@ -1,8 +1,23 @@
 {% extends "layouts/base.html" %}
-{% block title %}Katalog Produk — {{ settings.APP_NAME }}{% endblock %}
+{% set catalog_meta_title = localized_attr(page, lang, 'meta_title') if page else None %}
+{% set catalog_title = localized_attr(page, lang, 'title') if page else None %}
+{% set catalog_meta_desc = localized_attr(page, lang, 'meta_desc') if page else None %}
+{% set default_product_blurb = {
+  'id': 'Produk premium Wulung AeroTech',
+  'en': 'Premium product by Wulung AeroTech',
+  'ar': 'منتج متميز من وولونغ إيروتيك',
+  'ja': 'Wulung AeroTech のプレミアム製品',
+  'ko': 'Wulung AeroTech의 프리미엄 제품',
+  'zh-cn': 'Wulung AeroTech 的高端产品'
+}.get(lang, 'Produk premium Wulung AeroTech') %}
+{% block title %}{{ (catalog_meta_title or catalog_title or 'Katalog Produk') ~ ' — ' ~ settings.APP_NAME }}{% endblock %}
+{% block meta_desc %}{{ catalog_meta_desc or '' }}{% endblock %}
 {% block content %}
-{% if page and page.body %}
-  {{ page.body | safe }}
+{% if page %}
+  {% set catalog_body = localized_attr(page, lang, 'body') %}
+  {% if catalog_body %}
+    {{ catalog_body | safe }}
+  {% endif %}
 {% endif %}
 
 <section class="py-5" id="catalog-grid">
@@ -21,6 +36,9 @@
     {% if products %}
     <div class="row g-4">
       {% for product in products %}
+      {% set name = product_text(product, lang, 'name') %}
+      {% set short_desc = product_text(product, lang, 'short_description') %}
+      {% set long_desc = product_text(product, lang, 'description') %}
       <div
         class="col-md-6 col-lg-4"
         data-aos="fade-up"
@@ -32,7 +50,7 @@
             <img
               src="{{ product.image_url }}"
               class="w-100 h-100 object-fit-cover"
-              alt="{{ tr.name if tr else product.slug }}"
+              alt="{{ name or product.slug }}"
             />
             {% else %}
             <div
@@ -48,14 +66,14 @@
                 >Ready</span
               >
             </div>
-            <h5 class="card-title">{{ product.name or product.slug }}</h5>
+            <h5 class="card-title">{{ name or product.slug }}</h5>
             <p class="card-text text-muted flex-grow-1">
-              {% if product.short_description %}
-                {{ product.short_description }}
-              {% elif product.description %}
-                {{ product.description[:120] ~ ('...' if product.description|length > 120 else '') }}
+              {% if short_desc %}
+                {{ short_desc }}
+              {% elif long_desc %}
+                {{ long_desc[:120] ~ ('...' if long_desc|length > 120 else '') }}
               {% else %}
-                Produk premium Wulung AeroTech
+                {{ default_product_blurb }}
               {% endif %}
             </p>
             <div class="d-flex justify-content-between align-items-center mt-3">

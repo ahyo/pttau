@@ -7,7 +7,13 @@ import os, shutil
 
 from app.db import get_db
 from app.config import settings
-from app.models.carousel import CarouselItem
+from app.models.carousel import CarouselItem, CarouselItemTranslation
+from app.services.translator import (
+    translate_payload,
+    SUPPORTED_LANGS,
+    LANG_LABELS,
+    collect_translation_inputs,
+)
 
 from app.ui import templates
 
@@ -16,6 +22,56 @@ router = APIRouter(tags=["admin"])
 
 def require_admin(request: Request):
     return request.session.get("admin")
+
+
+def _clean(value: str | None) -> str | None:
+    if value is None:
+        return None
+    trimmed = value.strip()
+    return trimmed or None
+
+
+def _auto_carousel_translations(data: dict[str, str | None]):
+    payload = {
+        "title": data.get("title"),
+        "subtitle": data.get("subtitle"),
+        "cta_text": data.get("cta_text"),
+    }
+    return translate_payload(payload, SUPPORTED_LANGS)
+
+
+def _ensure_carousel_translations(
+    item: CarouselItem,
+    translations: dict[str, dict[str, str | None]],
+    db: Session,
+) -> None:
+    existing = {tr.lang: tr for tr in item.translations}
+    for lang in SUPPORTED_LANGS:
+        data = translations.get(lang, {})
+        tr = existing.get(lang)
+        if not tr:
+            tr = CarouselItemTranslation(carousel_item=item, lang=lang)
+            db.add(tr)
+        for field in ["title", "subtitle", "cta_text"]:
+            value = _clean(data.get(field)) if isinstance(data, dict) else None
+            if value is None:
+                value = getattr(item, field)
+            setattr(tr, field, value)
+
+
+def _build_carousel_translation_form(item: CarouselItem | None = None) -> dict[str, dict[str, str]]:
+    form: dict[str, dict[str, str]] = {}
+    for lang in SUPPORTED_LANGS:
+        if item:
+            tr = item.get_translation(lang)
+            form[lang] = {
+                "title": getattr(tr, "title", "") or "",
+                "subtitle": getattr(tr, "subtitle", "") or "",
+                "cta_text": getattr(tr, "cta_text", "") or "",
+            }
+        else:
+            form[lang] = {"title": "", "subtitle": "", "cta_text": ""}
+    return form
 
 
 UPLOAD_DIR = "app/static/uploads"  # pastikan folder ini writable di server
@@ -67,6 +123,11 @@ async def create_form(request: Request, db: Session = Depends(get_db)):
             "request": request,
             "mode": "create",
             "form_data": {},
+            "translation_form": _build_carousel_translation_form(),
+            "translation_langs": [
+                {"code": lang, "label": LANG_LABELS.get(lang, lang.upper())}
+                for lang in SUPPORTED_LANGS
+            ],
         },
     )
 
@@ -102,6 +163,30 @@ async def create_item(
         cta_url=cta_url.strip() or None,
     )
     db.add(item)
+    db.flush()
+
+    form_payload = await request.form()
+    manual_translations = collect_translation_inputs(
+        form_payload, ["title", "subtitle", "cta_text"]
+    )
+    auto_translations = _auto_carousel_translations(
+        {
+            "title": item.title,
+            "subtitle": item.subtitle,
+            "cta_text": item.cta_text,
+        }
+    )
+    merged: dict[str, dict[str, str | None]] = {}
+    for lang in SUPPORTED_LANGS:
+        manual = manual_translations.get(lang, {})
+        auto = auto_translations.get(lang, {})
+        entries: dict[str, str | None] = {}
+        for field in ["title", "subtitle", "cta_text"]:
+            manual_value = manual.get(field)
+            value = manual_value.strip() if isinstance(manual_value, str) else manual_value
+            entries[field] = value if value else auto.get(field)
+        merged[lang] = entries
+    _ensure_carousel_translations(item, merged, db)
 
     db.commit()
     return RedirectResponse(url="/admin/carousel", status_code=302)
@@ -123,6 +208,11 @@ async def edit_form(item_id: int, request: Request, db: Session = Depends(get_db
             "mode": "edit",
             "item": item,
             "form_data": {},
+            "translation_form": _build_carousel_translation_form(item),
+            "translation_langs": [
+                {"code": lang, "label": LANG_LABELS.get(lang, lang.upper())}
+                for lang in SUPPORTED_LANGS
+            ],
         },
     )
 
@@ -167,6 +257,29 @@ async def edit_item(
         item.cta_text = cta_text.strip() or None
     if cta_url is not None:
         item.cta_url = cta_url.strip() or None
+
+    form_payload = await request.form()
+    manual_translations = collect_translation_inputs(
+        form_payload, ["title", "subtitle", "cta_text"]
+    )
+    auto_translations = _auto_carousel_translations(
+        {
+            "title": item.title,
+            "subtitle": item.subtitle,
+            "cta_text": item.cta_text,
+        }
+    )
+    merged: dict[str, dict[str, str | None]] = {}
+    for lang in SUPPORTED_LANGS:
+        manual = manual_translations.get(lang, {})
+        auto = auto_translations.get(lang, {})
+        entries: dict[str, str | None] = {}
+        for field in ["title", "subtitle", "cta_text"]:
+            manual_value = manual.get(field)
+            value = manual_value.strip() if isinstance(manual_value, str) else manual_value
+            entries[field] = value if value else auto.get(field)
+        merged[lang] = entries
+    _ensure_carousel_translations(item, merged, db)
 
     db.commit()
     return RedirectResponse("/admin/carousel?msg=updated", 302)

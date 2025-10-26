@@ -1,6 +1,8 @@
 {% extends "layouts/base.html" %}
 {% block title %}Edit Menu{% endblock %}
 {% block content %}
+{% set translations = translation_form if (translation_form is defined and translation_form) else {} %}
+{% set translation_langs = translation_langs if translation_langs is defined else language_options[1:] %}
 <div class="container py-4">
   <h1 class="h5 mb-3">Edit Menu #{{ item.id }}</h1>
 
@@ -70,6 +72,25 @@
     <div class="col-md-6">
       <label class="form-label">Label</label>
       <input name="label" class="form-control" value="{{ item.label }}" required>
+    </div>
+
+    <div class="col-12">
+      <hr class="my-3">
+      <h2 class="h6">Terjemahan Label</h2>
+      <div class="row g-3 mt-1">
+        {% for lang in translation_langs %}
+        {% set lang_value = translations.get(lang.code, '') %}
+        <div class="col-md-6">
+          <label class="form-label">{{ lang.label }}</label>
+          <input
+            name="label_{{ lang.code }}"
+            class="form-control"
+            value="{{ lang_value }}"
+            {% if lang.code == 'ar' %}dir="rtl"{% endif %}
+          >
+        </div>
+        {% endfor %}
+      </div>
     </div>
 
     <div class="col-12 mt-2 d-flex gap-2">

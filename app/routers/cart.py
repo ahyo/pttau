@@ -23,7 +23,9 @@ def _get_open_cart(db: Session, user_id: int) -> Cart:
             select(Cart)
             .where(Cart.user_id == user_id, Cart.status == "open")
             .options(
-                selectinload(Cart.items).selectinload(CartItem.product)
+                selectinload(Cart.items)
+                .selectinload(CartItem.product)
+                .selectinload(Product.translations)
             )
         )
         .scalar_one_or_none()
