@@ -18,9 +18,13 @@
             <td>{{ p.template }}</td>
             <td>{{ 'Yes' if p.is_published else 'No' }}</td>
             <td class="text-nowrap">
-              <a class="btn btn-sm btn-outline-primary" href="/admin/pages/{{ p.id }}/edit">Edit</a>
+              <form method="post" action="/admin/pages/{{ p.id }}/translate" class="d-inline" onsubmit="return confirm('Replace all translate?')">
+                <button class="btn btn-sm btn-outline-warning"><i class="bi bi-translate"></i></button>
+              </form>
+              <a class="btn btn-sm btn-outline-primary" href="/admin/pages/{{ p.id }}/edit"><i class="bi bi-pencil-square"></i
+              ></a>
               <form method="post" action="/admin/pages/{{ p.id }}/delete" class="d-inline" onsubmit="return confirm('Delete this page?')">
-                <button class="btn btn-sm btn-outline-danger">Delete</button>
+                <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
               </form>
             </td>
           </tr>

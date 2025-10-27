@@ -26,11 +26,12 @@ def require_admin(request: Request):
 def _clean(value: str | None) -> str | None:
     if value is None:
         return None
-    trimmed = value.strip()
+    # trimmed = value.strip()
+    trimmed = value
     return trimmed or None
 
 
-def _auto_page_translations(page: Page) -> dict[str, dict[str, str | None]]:
+async def _auto_page_translations(page: Page) -> dict[str, dict[str, str | None]]:
     payload = {
         "title": page.title,
         "excerpt": page.excerpt,
@@ -38,7 +39,7 @@ def _auto_page_translations(page: Page) -> dict[str, dict[str, str | None]]:
         "meta_title": page.meta_title,
         "meta_desc": page.meta_desc,
     }
-    return translate_payload(payload, SUPPORTED_LANGS)
+    return await translate_payload(payload, SUPPORTED_LANGS)
 
 
 def _ensure_page_translations(
@@ -114,9 +115,11 @@ def _page_form_response(
         "page": page,
         "form_data": form_data or {},
         "error": error,
-        "translation_form": translations
-        if translations is not None
-        else _build_page_translation_form(page),
+        "translation_form": (
+            translations
+            if translations is not None
+            else _build_page_translation_form(page)
+        ),
         "translation_langs": [
             {"code": lang, "label": LANG_LABELS.get(lang, lang.upper())}
             for lang in SUPPORTED_LANGS
@@ -127,6 +130,7 @@ def _page_form_response(
         common_ctx(request, ctx),
         status_code=status_code or (400 if error else 200),
     )
+
 
 @router.get("/admin/login", response_class=HTMLResponse)
 async def admin_login_page(request: Request, msg: str = ""):
@@ -248,9 +252,7 @@ async def admin_password_update(
 async def admin_dashboard(request: Request, db=Depends(get_db)):
     if not require_admin(request):
         return RedirectResponse(url="/admin/login?msg=Please%20login", status_code=302)
-    return templates.TemplateResponse(
-        "admin/dashboard.html", common_ctx(request, {})
-    )
+    return templates.TemplateResponse("admin/dashboard.html", common_ctx(request, {}))
 
 
 @router.get("/admin/pages", response_class=HTMLResponse)
@@ -335,7 +337,7 @@ async def pages_create(
     db.add(page)
     db.flush()
 
-    auto_translations = _auto_page_translations(page)
+    auto_translations = await _auto_page_translations(page)
     merged: dict[str, dict[str, str | None]] = {}
     for lang in SUPPORTED_LANGS:
         manual = translation_form.get(lang, {})
@@ -343,7 +345,9 @@ async def pages_create(
         entries: dict[str, str | None] = {}
         for field in ["title", "excerpt", "body", "meta_title", "meta_desc"]:
             manual_value = manual.get(field)
-            value = manual_value.strip() if isinstance(manual_value, str) else manual_value
+            value = (
+                manual_value.strip() if isinstance(manual_value, str) else manual_value
+            )
             entries[field] = value if value else auto.get(field)
         merged[lang] = entries
     _ensure_page_translations(page, merged, db, overwrite_missing=True)
@@ -428,7 +432,7 @@ async def pages_edit(
 
     db.flush()
 
-    auto_translations = _auto_page_translations(page)
+    auto_translations = await _auto_page_translations(page)
     merged: dict[str, dict[str, str | None]] = {}
     for lang in SUPPORTED_LANGS:
         manual = translation_form.get(lang, {})
@@ -436,8 +440,43 @@ async def pages_edit(
         entries: dict[str, str | None] = {}
         for field in ["title", "excerpt", "body", "meta_title", "meta_desc"]:
             manual_value = manual.get(field)
-            value = manual_value.strip() if isinstance(manual_value, str) else manual_value
+            value = (
+                manual_value.strip() if isinstance(manual_value, str) else manual_value
+            )
             entries[field] = value if value else auto.get(field)
+        merged[lang] = entries
+
+    _ensure_page_translations(page, merged, db, overwrite_missing=True)
+
+    db.commit()
+    return RedirectResponse(url="/admin/pages", status_code=302)
+
+
+@router.post("/admin/pages/{page_id}/translate")
+async def pages_translate(
+    page_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    if not require_admin(request):
+        return RedirectResponse(url="/admin/login?msg=Please%20login", status_code=302)
+    page = db.get(Page, page_id)
+    if not page:
+        return RedirectResponse(url="/admin/pages?msg=Not%20found", status_code=302)
+
+    form_payload = await request.form()
+    translation_form = collect_translation_inputs(
+        form_payload,
+        ["title", "excerpt", "body", "meta_title", "meta_desc"],
+    )
+
+    auto_translations = await _auto_page_translations(page)
+    merged: dict[str, dict[str, str | None]] = {}
+    for lang in SUPPORTED_LANGS:
+        auto = auto_translations.get(lang, {})
+        entries: dict[str, str | None] = {}
+        for field in ["title", "excerpt", "body", "meta_title", "meta_desc"]:
+            entries[field] = auto.get(field)
         merged[lang] = entries
 
     _ensure_page_translations(page, merged, db, overwrite_missing=True)
