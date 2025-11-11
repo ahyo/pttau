@@ -31,13 +31,13 @@ def _clean(value: str | None) -> str | None:
     return trimmed or None
 
 
-def _auto_carousel_translations(data: dict[str, str | None]):
+async def _auto_carousel_translations(data: dict[str, str | None]):
     payload = {
         "title": data.get("title"),
         "subtitle": data.get("subtitle"),
         "cta_text": data.get("cta_text"),
     }
-    return translate_payload(payload, SUPPORTED_LANGS)
+    return await translate_payload(payload, SUPPORTED_LANGS)
 
 
 def _ensure_carousel_translations(
@@ -169,7 +169,7 @@ async def create_item(
     manual_translations = collect_translation_inputs(
         form_payload, ["title", "subtitle", "cta_text"]
     )
-    auto_translations = _auto_carousel_translations(
+    auto_translations = await _auto_carousel_translations(
         {
             "title": item.title,
             "subtitle": item.subtitle,
@@ -262,7 +262,7 @@ async def edit_item(
     manual_translations = collect_translation_inputs(
         form_payload, ["title", "subtitle", "cta_text"]
     )
-    auto_translations = _auto_carousel_translations(
+    auto_translations = await _auto_carousel_translations(
         {
             "title": item.title,
             "subtitle": item.subtitle,

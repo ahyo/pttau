@@ -43,7 +43,9 @@ def _ensure_section_translations(
 ):
     existing = {tr.lang: tr for tr in section.translations}
     for lang in SUPPORTED_LANGS:
-        value = _clean(translations.get(lang)) if isinstance(translations, dict) else None
+        value = (
+            _clean(translations.get(lang)) if isinstance(translations, dict) else None
+        )
         if value is None:
             value = section.name
         tr = existing.get(lang)
@@ -51,12 +53,12 @@ def _ensure_section_translations(
             if value is not None:
                 tr.name = value
             continue
-        db.add(
-            FooterSectionTranslation(section=section, lang=lang, name=value)
-        )
+        db.add(FooterSectionTranslation(section=section, lang=lang, name=value))
 
 
-def _build_section_translation_form(section: FooterSection | None = None) -> dict[str, str]:
+def _build_section_translation_form(
+    section: FooterSection | None = None,
+) -> dict[str, str]:
     result: dict[str, str] = {}
     for lang in SUPPORTED_LANGS:
         if section:
@@ -67,9 +69,9 @@ def _build_section_translation_form(section: FooterSection | None = None) -> dic
     return result
 
 
-def _auto_link(html: str | None):
+async def _auto_link(html: str | None):
     payload = {"html_content": html}
-    return translate_payload(payload, SUPPORTED_LANGS)
+    return await translate_payload(payload, SUPPORTED_LANGS)
 
 
 def _ensure_link_translations(
@@ -88,9 +90,7 @@ def _ensure_link_translations(
             if cleaned is not None:
                 tr.html_content = cleaned
             continue
-        db.add(
-            FooterLinkTranslation(link=link, lang=lang, html_content=cleaned)
-        )
+        db.add(FooterLinkTranslation(link=link, lang=lang, html_content=cleaned))
 
 
 def _build_link_translation_form(link: FooterLink | None = None) -> dict[str, str]:
@@ -200,8 +200,7 @@ async def link_create(
 
     auto_translations = _auto_link(link.html_content)
     mapped = {
-        lang: data.get("html_content")
-        for lang, data in auto_translations.items()
+        lang: data.get("html_content") for lang, data in auto_translations.items()
     }
     _ensure_link_translations(link, mapped, db)
 
@@ -338,7 +337,8 @@ async def link_edit(
         lang: _clean(raw_translations.get(lang, {}).get("html_content"))
         for lang in SUPPORTED_LANGS
     }
-    auto_map_raw = _auto_link(link.html_content)
+    auto_map_raw = await _auto_link(link.html_content)
+    print(auto_map_raw)
     auto_map = {
         lang: _clean(data.get("html_content")) if isinstance(data, dict) else None
         for lang, data in auto_map_raw.items()
@@ -349,5 +349,5 @@ async def link_edit(
     }
     _ensure_link_translations(link, merged_map, db)
 
-    db.commit()
+    # db.commit()
     return RedirectResponse(f"/admin/footer/{sid}/links?msg=Updated", 302)
