@@ -198,7 +198,7 @@ async def link_create(
     db.add(link)
     db.flush()
 
-    auto_translations = _auto_link(link.html_content)
+    auto_translations = await _auto_link(link.html_content)
     mapped = {
         lang: data.get("html_content") for lang, data in auto_translations.items()
     }
@@ -338,7 +338,6 @@ async def link_edit(
         for lang in SUPPORTED_LANGS
     }
     auto_map_raw = await _auto_link(link.html_content)
-    print(auto_map_raw)
     auto_map = {
         lang: _clean(data.get("html_content")) if isinstance(data, dict) else None
         for lang, data in auto_map_raw.items()
@@ -349,5 +348,5 @@ async def link_edit(
     }
     _ensure_link_translations(link, merged_map, db)
 
-    # db.commit()
+    db.commit()
     return RedirectResponse(f"/admin/footer/{sid}/links?msg=Updated", 302)

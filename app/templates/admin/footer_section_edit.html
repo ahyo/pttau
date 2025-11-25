@@ -4,63 +4,87 @@
 {% set translations = translation_form if (translation_form is defined and translation_form) else {} %}
 {% set translation_langs = translation_langs if translation_langs is defined else language_options[1:] %}
 <div class="container py-4">
-  <h1 class="h5 mb-3">Edit Section #{{ section.id }}</h1>
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-body d-flex justify-content-between align-items-start">
+      <div>
+        <div class="text-uppercase text-muted small fw-semibold mb-1">
+          Footer Section
+        </div>
+        <h1 class="h4 mb-1">Edit #{{ section.id }}</h1>
+        <p class="text-muted small mb-0">Perbarui urutan, status, dan nama section.</p>
+      </div>
+      <a class="btn btn-outline-secondary" href="/admin/footer">
+        <i class="bi bi-arrow-left"></i> Kembali
+      </a>
+    </div>
+  </div>
+
   <form method="post">
-    <div class="row g-3">
-      <div class="col-md-2">
-        <label class="form-label">Sort Order</label>
-        <input
-          name="sort_order"
-          type="number"
-          class="form-control"
-          value="{{ section.sort_order }}"
-        />
-      </div>
-      <div class="col-md-2 d-flex align-items-end">
-        <div class="form-check">
-          <input class="form-check-input" type="checkbox" name="is_active" id="is_active" {{ 'checked' if section.is_active else '' }}>
-          <label class="form-check-label" for="is_active">Active</label>
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-md-3">
+            <label class="form-label small text-muted">Sort Order</label>
+            <input
+              name="sort_order"
+              type="number"
+              class="form-control"
+              value="{{ section.sort_order }}"
+            />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label small text-muted">Status</label>
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" name="is_active" id="is_active" {{ 'checked' if section.is_active else '' }}>
+              <label class="form-check-label" for="is_active">Active</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="row g-3 mt-2">
+          <div class="col-md-6">
+            <label class="form-label">Nama Section</label>
+            <input
+              name="name"
+              class="form-control"
+              value="{{ section.name }}"
+              required
+            />
+            <small class="text-muted">Gunakan nama ringkas yang mudah dipahami.</small>
+          </div>
         </div>
       </div>
     </div>
 
-    <hr class="my-4" />
-
-    <div class="row g-3">
-      <div class="col-md-6">
-        <label class="form-label">Nama Section</label>
-        <input
-          name="name"
-          class="form-control"
-          value="{{ section.name }}"
-          required
-        />
-      </div>
-    </div>
-
-    <hr class="my-4" />
-
-    <div>
-      <h2 class="h6 mb-3">Terjemahan Nama Section</h2>
-      <div class="row g-3">
-        {% for lang in translation_langs %}
-        {% set lang_value = translations.get(lang.code, '') %}
-        <div class="col-md-6">
-          <label class="form-label">{{ lang.label }}</label>
-          <input
-            name="name_{{ lang.code }}"
-            class="form-control"
-            value="{{ lang_value }}"
-            {% if lang.code == 'ar' %}dir="rtl"{% endif %}
-          />
+    <div class="card border-0 shadow-sm">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <h2 class="h6 mb-1">Terjemahan Nama Section</h2>
+            <p class="text-muted small mb-0">Isi manual jika ingin override hasil auto translation.</p>
+          </div>
         </div>
-        {% endfor %}
+        <div class="row g-3">
+          {% for lang in translation_langs %}
+          {% set lang_value = translations.get(lang.code, '') %}
+          <div class="col-md-6">
+            <label class="form-label">{{ lang.label }}</label>
+            <input
+              name="name_{{ lang.code }}"
+              class="form-control"
+              value="{{ lang_value }}"
+              {% if lang.code == 'ar' %}dir="rtl"{% endif %}
+            />
+          </div>
+          {% endfor %}
+        </div>
       </div>
-    </div>
-
-    <div class="mt-4 d-flex gap-2">
-      <button class="btn btn-primary">Save</button>
-      <a class="btn btn-outline-secondary" href="/admin/footer">Cancel</a>
+      <div class="card-footer text-end">
+        <div class="d-flex gap-2 justify-content-end">
+          <a class="btn btn-outline-secondary" href="/admin/footer">Cancel</a>
+          <button class="btn btn-primary">Save Changes</button>
+        </div>
+      </div>
     </div>
   </form>
 </div>
