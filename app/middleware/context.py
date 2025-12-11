@@ -41,7 +41,11 @@ class ContextInjectorMiddleware(BaseHTTPMiddleware):
             request.state.cart_count = cart_count
 
             request.state.header_menu = get_menu_tree(
-                db, lang, "header", admin_logged=bool(admin)
+                db,
+                lang,
+                "header",
+                admin_logged=bool(admin),
+                current_path=request.url.path,
             )
             request.state.footer_data = get_footer_data(db, lang)
 

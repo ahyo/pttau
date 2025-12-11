@@ -11,10 +11,10 @@
       <label class="form-label">Parent</label>
       <select name="parent_id" class="form-select">
         <option value="">(Root)</option>
-        {% for p in parents %}
-          <option value="{{ p.id }}" {{ 'selected' if item.parent_id==p.id else '' }}>
-            {{ p.label }}
-          </option>
+        {% for p in parent_options %}
+        <option value="{{ p.id }}" {{ 'selected' if item.parent_id==p.id else '' }}>
+          {{ p.label }}
+        </option>
         {% endfor %}
       </select>
     </div>

@@ -17,7 +17,7 @@ block content %}
           <label class="form-label">Parent</label>
           <select name="parent_id" class="form-select">
             <option value="">(Root)</option>
-            {% for p in parents %}
+            {% for p in parent_options %}
             <option value="{{ p.id }}">
               {{ p.label }}
             </option>
@@ -130,7 +130,7 @@ block content %}
         {% for it in items %}
         <tr>
           <td>{{ it.id }}</td>
-          <td>{{ it.parent_id or '-' }}</td>
+          <td>{{ it.parent_label or '-' }}</td>
           <td>{{ it.position }}</td>
           <td>{{ it.sort_order }}</td>
           <td>{{ 'Yes' if it.active else 'No' }}</td>

@@ -63,14 +63,11 @@ def _build_translation_form(item: MenuItem | None = None) -> dict[str, str]:
     return form
 
 
-# LIST
-@router.get("/admin/menu", response_class=HTMLResponse)
-async def menu_list(request: Request, db: Session = Depends(get_db)):
-    if not require_admin(request):
-        return RedirectResponse("/admin/login", 302)
-    items = (
+def _fetch_all_menu_items(db: Session) -> list[MenuItem]:
+    return (
         db.execute(
             select(MenuItem).order_by(
+                MenuItem.parent_id.asc(),
                 MenuItem.sort_order.asc(),
                 MenuItem.id.asc(),
             )
@@ -79,12 +76,60 @@ async def menu_list(request: Request, db: Session = Depends(get_db)):
         .all()
     )
 
+
+def _collect_descendant_ids(root_id: int, by_parent: dict[int | None, list[MenuItem]]):
+    descendants: set[int] = set()
+    stack = [root_id]
+    while stack:
+        current = stack.pop()
+        for child in by_parent.get(current, []):
+            if child.id not in descendants:
+                descendants.add(child.id)
+                stack.append(child.id)
+    return descendants
+
+
+def _build_parent_options(
+    items: list[MenuItem], exclude_ids: set[int] | None = None
+) -> list[dict[str, str | int]]:
+    by_parent: dict[int | None, list[MenuItem]] = {}
+    for it in items:
+        by_parent.setdefault(it.parent_id, []).append(it)
+
+    for children in by_parent.values():
+        children.sort(key=lambda x: (x.sort_order, x.id))
+
+    options: list[dict[str, str | int]] = []
+
+    def walk(pid: int | None, depth: int = 0):
+        for node in by_parent.get(pid, []):
+            if exclude_ids and node.id in exclude_ids:
+                continue
+            prefix = ("  " * depth) + ("- " if depth else "")
+            options.append({"id": node.id, "label": f"{prefix}{node.label}"})
+            walk(node.id, depth + 1)
+
+    walk(None)
+    return options
+
+
+# LIST
+@router.get("/admin/menu", response_class=HTMLResponse)
+async def menu_list(request: Request, db: Session = Depends(get_db)):
+    if not require_admin(request):
+        return RedirectResponse("/admin/login", 302)
+    items = _fetch_all_menu_items(db)
+
+    parent_lookup = {it.id: it for it in items}
     rows = []
     for it in items:
         rows.append(
             {
                 "id": it.id,
                 "parent_id": it.parent_id,
+                "parent_label": parent_lookup.get(it.parent_id).label
+                if it.parent_id
+                else None,
                 "position": it.position,
                 "url": it.url,
                 "is_external": it.is_external,
@@ -94,23 +139,14 @@ async def menu_list(request: Request, db: Session = Depends(get_db)):
                 "label": it.label or "(no label)",
             }
         )
-    # opsi parent utk form create
-    parents = (
-        db.execute(
-            select(MenuItem)
-            .where(MenuItem.parent_id == None)
-            .order_by(MenuItem.sort_order, MenuItem.id)
-        )
-        .scalars()
-        .all()
-    )
+    parent_options = _build_parent_options(items)
     return templates.TemplateResponse(
         "admin/menu_list.html",
         common_ctx(
             request,
             {
                 "items": rows,
-                "parents": parents,
+                "parent_options": parent_options,
             },
         ),
     )
@@ -170,21 +206,19 @@ async def menu_edit_form(mid: int, request: Request, db: Session = Depends(get_d
     item = db.get(MenuItem, mid)
     if not item:
         return RedirectResponse("/admin/menu?msg=not_found", 302)
-    parents = (
-        db.execute(
-            select(MenuItem)
-            .where(MenuItem.parent_id == None, MenuItem.id != mid)
-            .order_by(MenuItem.sort_order, MenuItem.id)
-        )
-        .scalars()
-        .all()
-    )
+    items = _fetch_all_menu_items(db)
+    by_parent: dict[int | None, list[MenuItem]] = {}
+    for it in items:
+        by_parent.setdefault(it.parent_id, []).append(it)
+    excluded = _collect_descendant_ids(mid, by_parent)
+    excluded.add(mid)
+    parent_options = _build_parent_options(items, excluded)
     return templates.TemplateResponse(
         "admin/menu_form.html",
         {
             "request": request,
             "item": item,
-            "parents": parents,
+            "parent_options": parent_options,
             "translation_form": _build_translation_form(item),
             "translation_langs": [
                 {"code": lang, "label": LANG_LABELS.get(lang, lang.upper())}
