@@ -31,9 +31,9 @@ def _clean(value: str | None) -> str | None:
     return trimmed or None
 
 
-def _auto_section(name: str | None):
+async def _auto_section(name: str | None):
     payload = {"name": name}
-    return translate_payload(payload, SUPPORTED_LANGS)
+    return await translate_payload(payload, SUPPORTED_LANGS)
 
 
 def _ensure_section_translations(
@@ -148,7 +148,7 @@ async def section_create(
     db.add(s)
     db.flush()
 
-    auto_translations = _auto_section(s.name)
+    auto_translations = await _auto_section(s.name)
     mapped = {lang: data.get("name") for lang, data in auto_translations.items()}
     _ensure_section_translations(s, mapped, db)
 
@@ -259,7 +259,7 @@ async def section_edit(
         lang: _clean(raw_translations.get(lang, {}).get("name"))
         for lang in SUPPORTED_LANGS
     }
-    auto_map_raw = _auto_section(section.name)
+    auto_map_raw = await _auto_section(section.name)
     auto_map = {
         lang: _clean(data.get("name")) if isinstance(data, dict) else None
         for lang, data in auto_map_raw.items()
