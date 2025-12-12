@@ -8,12 +8,9 @@
 {% block meta_desc %}{{ localized_meta_desc or '' }}{% endblock %}
 {% block content %}
 {% if page.slug == "product" %}
-  {{ localized_body | safe }}
+{{ localized_body | safe }}
 {% else %}
-<section
-  class="py-5 bg-dark text-white"
-  style="background: linear-gradient(135deg, #0f172a, #1d4ed8)"
->
+<section class="py-5 bg-dark text-white" style="background: linear-gradient(135deg, #6F869E, #465463)">
   <div class="container py-4">
     <div class="row align-items-center">
       <div class="col-lg-8">
@@ -31,11 +28,7 @@
           {{ localized_title }}
         </h1>
         {% if localized_excerpt %}
-        <p
-          class="lead mb-0 text-white-50"
-          data-aos="fade-right"
-          data-aos-delay="100"
-        >
+        <p class="lead mb-0 text-white-50" data-aos="fade-right" data-aos-delay="100">
           {{ localized_excerpt }}
         </p>
         {% endif %}
