@@ -3,22 +3,22 @@
 {% set catalog_title = localized_attr(page, lang, 'title') if page else None %}
 {% set catalog_meta_desc = localized_attr(page, lang, 'meta_desc') if page else None %}
 {% set default_product_blurb = {
-  'id': 'Produk premium Wulung AeroTech',
-  'en': 'Premium product by Wulung AeroTech',
-  'ar': 'منتج متميز من وولونغ إيروتيك',
-  'ja': 'Wulung AeroTech のプレミアム製品',
-  'ko': 'Wulung AeroTech의 프리미엄 제품',
-  'zh-cn': 'Wulung AeroTech 的高端产品'
+'id': 'Produk premium Wulung AeroTech',
+'en': 'Premium product by Wulung AeroTech',
+'ar': 'منتج متميز من وولونغ إيروتيك',
+'ja': 'Wulung AeroTech のプレミアム製品',
+'ko': 'Wulung AeroTech의 프리미엄 제품',
+'zh-cn': 'Wulung AeroTech 的高端产品'
 }.get(lang, 'Produk premium Wulung AeroTech') %}
 {% set catalog_heading = catalog_meta_title or catalog_title or 'Katalog Produk' %}
 {% block title %}{{ catalog_heading ~ ' — ' ~ settings.APP_NAME }}{% endblock %}
 {% block meta_desc %}{{ catalog_meta_desc or '' }}{% endblock %}
 {% block content %}
 {% if page %}
-  {% set catalog_body = localized_attr(page, lang, 'body') %}
-  {% if catalog_body %}
-    {{ catalog_body | safe }}
-  {% endif %}
+{% set catalog_body = localized_attr(page, lang, 'body') %}
+{% if catalog_body %}
+{{ catalog_body | safe }}
+{% endif %}
 {% endif %}
 
 <section class="py-5" id="catalog-grid">
@@ -26,12 +26,7 @@
     {% if msg %}
     <div class="alert alert-success alert-dismissible fade show" role="alert">
       {{ msg }}
-      <button
-        type="button"
-        class="btn-close"
-        data-bs-dismiss="alert"
-      aria-label="Close"
-    ></button>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
     {% endif %}
     <div class="card border-0 shadow-sm mb-4">
@@ -44,7 +39,8 @@
           <select name="brand" class="form-select" style="min-width: 220px;" onchange="this.form.submit()">
             <option value="">Semua brand</option>
             {% for brand in brands %}
-            <option value="{{ brand.slug }}" {% if active_brand and active_brand.id == brand.id %}selected{% endif %}>{{ brand.name }}</option>
+            <option value="{{ brand.slug }}" {% if active_brand and active_brand.id==brand.id %}selected{% endif %}>{{
+              brand.name }}</option>
             {% endfor %}
           </select>
         </form>
@@ -56,32 +52,20 @@
       {% set name = product_text(product, lang, 'name') %}
       {% set short_desc = product_text(product, lang, 'short_description') %}
       {% set long_desc = product_text(product, lang, 'description') %}
-      <div
-        class="col-md-6 col-lg-4"
-        data-aos="fade-up"
-        data-aos-delay="{{ loop.index * 70 }}"
-      >
+      <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="{{ loop.index * 70 }}">
         <div class="card shadow border-0 h-100 overflow-hidden">
           <div class="ratio ratio-4x3 bg-dark">
             {% if product.image_url %}
-            <img
-              src="{{ product.image_url }}"
-              class="w-100 h-100 object-fit-cover"
-              alt="{{ name or product.slug }}"
-            />
+            <img src="{{ product.image_url }}" class="w-100 h-100 object-fit-cover" alt="{{ name or product.slug }}" />
             {% else %}
-            <div
-              class="d-flex align-items-center justify-content-center text-white-50"
-            >
+            <div class="d-flex align-items-center justify-content-center text-white-50">
               <i class="bi bi-box-seam" style="font-size: 3rem"></i>
             </div>
             {% endif %}
           </div>
           <div class="card-body d-flex flex-column">
             <div class="mb-2">
-              <span class="badge rounded-pill bg-primary-subtle text-primary"
-                >Ready</span
-              >
+              <span class="badge rounded-pill bg-primary-subtle text-primary">Ready</span>
               {% if product.brand %}
               <span class="badge rounded-pill bg-dark-subtle text-dark">{{ product.brand.name }}</span>
               {% endif %}
@@ -89,46 +73,32 @@
             <h5 class="card-title">{{ name or product.slug }}</h5>
             <p class="card-text text-muted flex-grow-1">
               {% if short_desc %}
-                {{ short_desc }}
+              {{ short_desc }}
               {% elif long_desc %}
-                {{ long_desc[:120] ~ ('...' if long_desc|length > 120 else '') }}
+              {{ long_desc[:120] ~ ('...' if long_desc|length > 120 else '') }}
               {% else %}
-                {{ default_product_blurb }}
+              {{ default_product_blurb }}
               {% endif %}
             </p>
             <div class="d-flex justify-content-between align-items-center mt-3">
               <div class="fw-semibold text-primary">
                 Rp {{ "{:,.2f}".format(product.price or 0) }}
               </div>
-              <a
-                class="btn btn-outline-primary btn-sm"
-                href="/catalog/{{ product.slug }}"
-              >
+              <a class="btn btn-outline-primary btn-sm" href="/catalog/{{ product.slug }}">
                 Detail
               </a>
             </div>
             <div class="mt-3">
               {% if user %}
-              <form
-                method="post"
-                action="/cart/add"
-                class="d-flex align-items-center gap-2"
-              >
-                <input
-                  type="hidden"
-                  name="product_id"
-                  value="{{ product.id }}"
-                />
+              <form method="post" action="/cart/add" class="d-flex align-items-center gap-2">
+                <input type="hidden" name="product_id" value="{{ product.id }}" />
                 <input type="hidden" name="quantity" value="1" />
                 <button type="submit" class="btn btn-primary w-100">
                   <i class="bi bi-cart-plus me-1"></i>Tambah ke Keranjang
                 </button>
               </form>
               {% else %}
-              <a
-                class="btn btn-light w-100"
-                href="/login?msg=Login%20untuk%20membeli"
-              >
+              <a class="btn btn-light w-100" href="/login?msg=Login%20untuk%20membeli">
                 <i class="bi bi-box-arrow-in-right me-1"></i>Login untuk Membeli
               </a>
               {% endif %}
@@ -142,7 +112,7 @@
     <div class="text-center py-5">
       <h3 class="fw-semibold">Produk segera hadir</h3>
       <p class="text-muted">
-        Administrator belum menambahkan produk. Silakan kembali lagi nanti.
+        Mohon maaf untuk saat ini produk belum tersedia. Silakan kembali lagi nanti.
       </p>
     </div>
     {% endif %}
