@@ -5,7 +5,7 @@ import os
 from fastapi import APIRouter, Depends, Form, Request, UploadFile, File
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 from slugify import slugify
 
 from app.db import get_db
@@ -97,7 +97,11 @@ async def admin_product_list(request: Request, db: Session = Depends(get_db)):
     msg = request.query_params.get("msg", "")
 
     products = (
-        db.execute(select(Product).order_by(Product.created_at.desc()))
+        db.execute(
+            select(Product)
+            .options(selectinload(Product.images))
+            .order_by(Product.created_at.desc())
+        )
         .scalars()
         .all()
     )
@@ -165,6 +169,7 @@ async def admin_product_create(
     image_url: str = Form(""),
     image_file: UploadFile = File(None),
     gallery_files: list[UploadFile] = File([]),
+    gallery_urls: str = Form(""),
     is_active: str = Form("on"),
     name: str = Form(""),
     short_description: str = Form(""),
@@ -178,6 +183,7 @@ async def admin_product_create(
     translation_form = collect_translation_inputs(
         form_payload, ["name", "short_description", "description"]
     )
+    gallery_url_list = _parse_gallery_urls(gallery_urls)
 
     desired_slug = (
         (slug or "").strip()
@@ -203,6 +209,7 @@ async def admin_product_create(
                         "image_url": image_url,
                         "is_active": is_active,
                         "brand_id": brand_id,
+                        "gallery_urls": gallery_urls,
                     },
                     "translation_form": translation_form,
                     "brands": brands,
@@ -219,12 +226,20 @@ async def admin_product_create(
 
     media_path = _save_upload(image_file)
     gallery_paths = _save_uploads(gallery_files)
+    extra_urls = gallery_url_list
     cleaned_image_url = (image_url or "").strip()
+    all_images: list[str] = []
+    if media_path:
+        all_images.append(media_path)
+    all_images.extend(gallery_paths)
+    all_images.extend(extra_urls)
+    if cleaned_image_url:
+        all_images.append(cleaned_image_url)
     product = Product(
         slug=product_slug,
         price=_parse_decimal(price),
         stock=stock,
-        image_url=media_path or (cleaned_image_url or None),
+        image_url=all_images[0] if all_images else (cleaned_image_url or None),
         is_active=is_active == "on",
         brand_id=brand_id if brand_id else None,
         name=(name or product_slug).strip(),
@@ -233,7 +248,7 @@ async def admin_product_create(
     )
     db.add(product)
     db.flush()
-    for idx, path in enumerate(gallery_paths):
+    for idx, path in enumerate(all_images):
         db.add(ProductImage(product_id=product.id, image_url=path, sort_order=idx))
 
     payload = {
@@ -303,6 +318,7 @@ async def admin_product_edit(
     image_url: str = Form(""),
     image_file: UploadFile = File(None),
     gallery_files: list[UploadFile] = File([]),
+    gallery_urls: str = Form(""),
     is_active: str = Form("off"),
     name: str = Form(""),
     short_description: str = Form(""),
@@ -320,6 +336,7 @@ async def admin_product_edit(
     translation_form = collect_translation_inputs(
         form_payload, ["name", "short_description", "description"]
     )
+    gallery_url_list = _parse_gallery_urls(gallery_urls)
 
     desired_slug = (
         (slug or "").strip()
@@ -346,6 +363,7 @@ async def admin_product_edit(
                         "image_url": image_url,
                         "is_active": is_active,
                         "brand_id": brand_id,
+                        "gallery_urls": gallery_urls,
                     },
                     "translation_form": translation_form,
                     "brands": brands,
@@ -364,11 +382,25 @@ async def admin_product_edit(
     product.stock = stock
     media_path = _save_upload(image_file)
     gallery_paths = _save_uploads(gallery_files)
+    extra_urls = gallery_url_list
     cleaned_image_url = (image_url or "").strip()
+    all_images: list[str] = []
     if media_path:
-        product.image_url = media_path
-    elif cleaned_image_url:
-        product.image_url = cleaned_image_url
+        all_images.append(media_path)
+    all_images.extend(gallery_paths)
+    all_images.extend(extra_urls)
+    if cleaned_image_url:
+        all_images.append(cleaned_image_url)
+    if all_images:
+        product.image_url = all_images[0]
+        product.images.clear()
+        for idx, path in enumerate(all_images):
+            db.add(ProductImage(product_id=product.id, image_url=path, sort_order=idx))
+    else:
+        if media_path:
+            product.image_url = media_path
+        elif cleaned_image_url:
+            product.image_url = cleaned_image_url
     product.is_active = is_active == "on"
     product.brand_id = brand_id if brand_id else None
     product.name = (name or product.name or product.slug).strip()
@@ -396,9 +428,6 @@ async def admin_product_edit(
         merged_translations[lang] = merged
 
     _ensure_translation_records(product, merged_translations, db)
-
-    for idx, path in enumerate(gallery_paths):
-        db.add(ProductImage(product_id=product.id, image_url=path, sort_order=idx))
 
     db.commit()
 
@@ -441,3 +470,14 @@ def _save_uploads(uploads: list[UploadFile] | None) -> list[str]:
         if path:
             saved.append(path)
     return saved
+
+
+def _parse_gallery_urls(raw: str | None) -> list[str]:
+    if not raw:
+        return []
+    entries: list[str] = []
+    for line in raw.splitlines():
+        cleaned = line.strip()
+        if cleaned:
+            entries.append(cleaned)
+    return entries

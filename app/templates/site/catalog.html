@@ -52,11 +52,12 @@
       {% set name = product_text(product, lang, 'name') %}
       {% set short_desc = product_text(product, lang, 'short_description') %}
       {% set long_desc = product_text(product, lang, 'description') %}
+      {% set thumb = (product.images[0].image_url if product.images else product.image_url) %}
       <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="{{ loop.index * 70 }}">
         <div class="card shadow border-0 h-100 overflow-hidden">
           <div class="ratio ratio-4x3 bg-dark">
-            {% if product.image_url %}
-            <img src="{{ product.image_url }}" class="w-100 h-100 object-fit-cover" alt="{{ name or product.slug }}" />
+            {% if thumb %}
+            <img src="{{ thumb }}" class="w-100 h-100 object-fit-cover" alt="{{ name or product.slug }}" />
             {% else %}
             <div class="d-flex align-items-center justify-content-center text-white-50">
               <i class="bi bi-box-seam" style="font-size: 3rem"></i>

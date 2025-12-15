@@ -22,8 +22,8 @@ const initPasswordToggles = () => {
 };
 
 const initProductImagePreview = () => {
-  const urlInput = document.querySelector("[data-product-image-url]");
-  const fileInput = document.querySelector("[data-product-image-file]");
+  const urlInput = document.querySelector("[data-product-gallery-url]");
+  const fileInput = document.querySelector("[data-product-gallery-files]");
   const previewContainer = document.querySelector("[data-product-image-preview-card]");
   const previewImage = previewContainer?.querySelector("[data-product-image-preview]");
   const placeholder = previewContainer?.querySelector("[data-product-image-placeholder]");
@@ -58,7 +58,7 @@ const initProductImagePreview = () => {
   };
 
   const updateFromInputs = () => {
-    const file = fileInput?.files?.[0];
+    const file = fileInput?.files && fileInput.files.length ? fileInput.files[0] : null;
     if (file) {
       if (!file.type || !file.type.startsWith("image/")) {
         resetPreview();
@@ -73,9 +73,13 @@ const initProductImagePreview = () => {
       return;
     }
 
-    const urlValue = urlInput?.value?.trim();
-    if (urlValue) {
-      showPreview(urlValue);
+    const rawUrls = urlInput?.value || "";
+    const firstUrl = rawUrls
+      .split(/\r?\n/)
+      .map((s) => s.trim())
+      .filter(Boolean)[0];
+    if (firstUrl) {
+      showPreview(firstUrl);
       return;
     }
 

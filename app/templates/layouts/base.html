@@ -7,7 +7,14 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% block title %}{{ settings.APP_NAME if settings else 'Wulung AeroTech' }}{% endblock %}</title>
+    {% set _raw_title %}{% block title %}{{ settings.APP_NAME if settings else 'Wulung AeroTech' }}{% endblock %}{% endset %}
+    {% set _clean_title = _raw_title.strip() %}
+    {% if not _clean_title or _clean_title == 'None' %}
+      {% set _clean_title = settings.APP_NAME if settings else 'Wulung AeroTech' %}
+    {% elif _clean_title.startswith('None — ') %}
+      {% set _clean_title = _clean_title.replace('None — ', '') %}
+    {% endif %}
+    <title>{{ _clean_title }}</title>
     <meta name="description" content="{% block meta_desc %}{% endblock %}">
     <meta property="og:title" content="{% block og_title %}{% endblock %}">
     <meta property="og:description" content="{% block og_desc %}{% endblock %}">
