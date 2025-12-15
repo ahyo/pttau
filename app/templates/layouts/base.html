@@ -50,7 +50,7 @@
 <script>
   $(document).ready(function () {
     // Inisialisasi editor di textarea konten panjang
-    $('textarea[name="body"],textarea[name="subtitle"],textarea[name="description"],textarea[name="html_content"]').trumbowyg({
+    $('textarea[name="body"],textarea[name="subtitle"],textarea[name="description"],textarea[name="html_content"],textarea[name="content"],textarea[name^="content_"]').trumbowyg({
       semantic: false,
       removeformatPasted: false,
       btns: [

@@ -1,0 +1,213 @@
+{% extends "layouts/base.html" %}
+{% block title %}{% if mode == 'create' %}Tambah Layanan{% else %}Ubah Layanan{% endif %} — {{ settings.APP_NAME }}{% endblock %}
+{% block content %}
+{% set action = '/admin/services/create' if mode == 'create' else '/admin/services/' ~ service.id ~ '/edit' %}
+{% set data = form_data if form_data else {} %}
+{% set initial_image = (data.get('image_url') if data.get('image_url') else (service.image_url if service and service.image_url else '')) %}
+{% set translations = (translation_form if (translation_form is defined and translation_form) else {}) %}
+{% set translation_langs = translation_langs if translation_langs is defined else language_options[1:] %}
+
+<section class="py-5">
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+          <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <div>
+                <h1 class="h4 mb-1">{% if mode == 'create' %}Tambah Layanan{% else %}Perbarui Layanan{% endif %}</h1>
+                <p class="text-muted mb-0">Isi informasi dasar layanan agar muncul di halaman Layanan.</p>
+              </div>
+              <a class="btn btn-outline-secondary btn-sm" href="/admin/services">
+                <i class="bi bi-arrow-left"></i> Kembali
+              </a>
+            </div>
+
+            {% if error %}
+            <div class="alert alert-danger">{{ error }}</div>
+            {% endif %}
+
+            <form method="post" action="{{ action }}" enctype="multipart/form-data">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label">Slug</label>
+                  <input
+                    name="slug"
+                    type="text"
+                    class="form-control"
+                    placeholder="otomatis bila dikosongkan"
+                    value="{{ data.get('slug', service.slug if service else '') }}"
+                  />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Gambar Layanan</label>
+                  <input
+                    name="image_url"
+                    type="url"
+                    class="form-control mb-2"
+                    placeholder="https://... (opsional)"
+                    value="{{ data.get('image_url', service.image_url if service and service.image_url and service.image_url.startswith('http') else '') }}"
+                    data-product-image-url
+                  />
+                  <input
+                    name="image_file"
+                    type="file"
+                    accept="image/*"
+                    class="form-control"
+                    data-product-image-file
+                  />
+                  <div class="form-text">Isi URL atau unggah file. Jika keduanya diisi, unggahan akan diprioritaskan.</div>
+                </div>
+                <div class="col-12">
+                  <div class="form-check form-switch">
+                    {% set is_active_flag = data.get('is_active') if data else None %}
+                    {% set active_default = (mode == 'create') or (service and service.is_active) %}
+                    <input class="form-check-input" type="checkbox" role="switch" name="is_active" id="is_active" {% if is_active_flag is none %}{% if active_default %}checked{% endif %}{% else %}{% if is_active_flag == 'on' %}checked{% endif %}{% endif %} />
+                    <label class="form-check-label" for="is_active">Tampilkan layanan di situs</label>
+                  </div>
+                </div>
+              </div>
+
+              <hr class="my-4" />
+
+              <div class="row g-3">
+                <div class="col-12">
+                  <label class="form-label">Judul</label>
+                  <input
+                    name="title"
+                    type="text"
+                    class="form-control"
+                    value="{{ data.get('title', service.title if service else '') }}"
+                    required
+                  />
+                </div>
+                <div class="col-12">
+                  <label class="form-label">Deskripsi Singkat</label>
+                  <input
+                    name="description"
+                    type="text"
+                    class="form-control"
+                    value="{{ data.get('description', service.description if service else '') }}"
+                  />
+                </div>
+                <div class="col-12">
+                  <label class="form-label">Konten Lengkap</label>
+                  <textarea
+                    name="content"
+                    class="form-control"
+                    rows="8"
+                  >{{ data.get('content', service.content if service else '') }}</textarea>
+                </div>
+              </div>
+
+              {% if mode == 'edit' %}
+              <hr class="my-4" />
+              <div>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <div>
+                    <h2 class="h6 mb-1">Terjemahan Bahasa</h2>
+                    <p class="text-muted small mb-0">Sesuaikan teks untuk bahasa lain agar konsisten dengan istilah layanan Anda.</p>
+                  </div>
+                </div>
+                <ul class="nav nav-pills mb-3" id="serviceTranslationTabs" role="tablist">
+                  {% for lang in translation_langs %}
+                  {% set is_active = loop.index == 1 %}
+                  <li class="nav-item" role="presentation">
+                    <button
+                      class="nav-link {% if is_active %}active{% endif %}"
+                      id="tab-{{ lang.code }}"
+                      data-bs-toggle="pill"
+                      data-bs-target="#pane-{{ lang.code }}"
+                      type="button"
+                      role="tab"
+                      aria-controls="pane-{{ lang.code }}"
+                      aria-selected="{{ 'true' if is_active else 'false' }}"
+                    >{{ lang.label }}</button>
+                  </li>
+                  {% endfor %}
+                </ul>
+                <div class="tab-content" id="serviceTranslationPanes">
+                  {% for lang in translation_langs %}
+                  {% set is_active = loop.index == 1 %}
+                  {% set lang_data = translations.get(lang.code, {}) %}
+                  <div
+                    class="tab-pane fade {% if is_active %}show active{% endif %}"
+                    id="pane-{{ lang.code }}"
+                    role="tabpanel"
+                    aria-labelledby="tab-{{ lang.code }}"
+                  >
+                    <div class="row g-3">
+                      <div class="col-12">
+                        <label class="form-label">Judul ({{ lang.label }})</label>
+                        <input
+                          name="title_{{ lang.code }}"
+                          type="text"
+                          class="form-control"
+                          value="{{ lang_data.get('title', '') }}"
+                          {% if lang.code == 'ar' %}dir="rtl"{% endif %}
+                        />
+                      </div>
+                      <div class="col-12">
+                        <label class="form-label">Deskripsi Singkat ({{ lang.label }})</label>
+                        <input
+                          name="description_{{ lang.code }}"
+                          type="text"
+                          class="form-control"
+                          value="{{ lang_data.get('description', '') }}"
+                          {% if lang.code == 'ar' %}dir="rtl"{% endif %}
+                        />
+                      </div>
+                      <div class="col-12">
+                        <label class="form-label">Konten ({{ lang.label }})</label>
+                        <textarea
+                          name="content_{{ lang.code }}"
+                          class="form-control"
+                          rows="6"
+                          {% if lang.code == 'ar' %}dir="rtl"{% endif %}
+                        >{{ lang_data.get('content', '') }}</textarea>
+                      </div>
+                    </div>
+                  </div>
+                  {% endfor %}
+                </div>
+              </div>
+              {% endif %}
+
+              <div class="d-flex justify-content-end gap-3 mt-4">
+                <a class="btn btn-light" href="/admin/services">Batal</a>
+                <button class="btn btn-primary" type="submit">
+                  {% if mode == 'create' %}Simpan Layanan{% else %}Simpan Perubahan{% endif %}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-4">
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-white fw-semibold">Pratinjau</div>
+          <div class="card-body">
+            <div data-product-image-preview-card class="text-center">
+              <img
+                src="{{ initial_image }}"
+                data-product-image-preview
+                data-initial-src="{{ initial_image }}"
+                alt="Preview gambar layanan"
+                class="img-fluid rounded mb-3 {% if not initial_image %}d-none{% endif %}"
+              />
+              <div
+                class="text-muted small {% if initial_image %}d-none{% endif %}"
+                data-product-image-placeholder
+              >
+                Pratinjau akan muncul setelah memasukkan URL atau memilih file gambar.
+              </div>
+            </div>
+            <div class="text-muted small">Perbarui URL gambar atau unggah file baru untuk mengganti pratinjau.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,131 @@
+{% extends "layouts/base.html" %}
+{% set services_meta_title = localized_attr(page, lang, 'meta_title') if page else None %}
+{% set services_title = localized_attr(page, lang, 'title') if page else 'Layanan' %}
+{% set services_meta_desc = localized_attr(page, lang, 'meta_desc') if page else None %}
+{% set services_excerpt = localized_attr(page, lang, 'excerpt') if page else None %}
+{% set services_body = localized_attr(page, lang, 'body') if page else None %}
+{% block title %}{{ (services_meta_title or services_title) ~ ' — ' ~ settings.APP_NAME }}{% endblock %}
+{% block meta_desc %}{{ services_meta_desc or services_excerpt or '' }}{% endblock %}
+{% block content %}
+<section class="py-5 bg-dark text-white" style="background: radial-gradient(circle at 10% 20%, rgba(255,255,255,0.08), transparent 25%), linear-gradient(120deg, #0f172a, #2b3f6b);">
+  <div class="container py-4">
+    <div class="row align-items-center g-4">
+      <div class="col-lg-7" data-aos="fade-right">
+        <div class="text-uppercase small text-white-50 mb-2">Layanan Kami</div>
+        <h1 class="display-5 fw-bold mb-3">{{ services_title }}</h1>
+        {% if services_excerpt %}
+        <p class="lead text-white-50 mb-0">{{ services_excerpt }}</p>
+        {% else %}
+        <p class="lead text-white-50 mb-0">
+          Layanan rekayasa, integrasi, dan pendampingan operasional yang dikurasi untuk kebutuhan kedirgantaraan modern.
+        </p>
+        {% endif %}
+      </div>
+      <div class="col-lg-5" data-aos="fade-left">
+        <div class="card border-0 shadow-lg bg-white text-dark">
+          <div class="card-body p-4">
+            <div class="d-flex align-items-center mb-3">
+              <div class="badge bg-primary-subtle text-primary px-3 py-2 me-2">Terpercaya</div>
+              <div class="text-muted small">Didukung tim teknis bersertifikat.</div>
+            </div>
+            <ul class="list-unstyled mb-0">
+              <li class="d-flex gap-3 mb-3">
+                <i class="bi bi-lightning-charge-fill text-primary"></i>
+                <div>
+                  <div class="fw-semibold">Respon Cepat</div>
+                  <p class="text-muted mb-0">On-demand support dan implementasi proyek tanpa menunggu lama.</p>
+                </div>
+              </li>
+              <li class="d-flex gap-3 mb-3">
+                <i class="bi bi-globe2 text-primary"></i>
+                <div>
+                  <div class="fw-semibold">Skala Nasional</div>
+                  <p class="text-muted mb-0">Layanan lintas wilayah dengan dokumentasi multi-bahasa.</p>
+                </div>
+              </li>
+              <li class="d-flex gap-3">
+                <i class="bi bi-shield-lock-fill text-primary"></i>
+                <div>
+                  <div class="fw-semibold">Keamanan Utama</div>
+                  <p class="text-muted mb-0">Prosedur sesuai standar industri penerbangan dan pertahanan.</p>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% if services_body %}
+<section class="py-5">
+  <div class="container">
+    <article class="content mb-0">{{ services_body | safe }}</article>
+  </div>
+</section>
+{% endif %}
+
+<section class="py-5 bg-light" id="services">
+  <div class="container">
+    <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-4 gap-3">
+      <div>
+        <div class="text-uppercase text-muted small">Daftar Layanan</div>
+        <h2 class="h3 fw-bold mb-1">Pilihan layanan yang bisa Anda aktifkan</h2>
+        <p class="text-muted mb-0">Setiap layanan dilengkapi konten mendalam yang dapat dikustomisasi oleh admin.</p>
+      </div>
+      <a class="btn btn-outline-primary" href="/contact">
+        Hubungi Kami
+      </a>
+    </div>
+
+    {% if services %}
+    <div class="row g-4">
+      {% for item in services %}
+      {% set title = localized_attr(item, lang, 'title') or item.slug %}
+      {% set desc = localized_attr(item, lang, 'description') %}
+      {% set body = localized_attr(item, lang, 'content') %}
+      {% set preview = (body|striptags) if body else '' %}
+      <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="{{ loop.index * 70 }}">
+        <div class="card h-100 border-0 shadow-sm overflow-hidden">
+          <div class="ratio ratio-4x3 bg-dark">
+            {% if item.image_url %}
+            <img src="{{ item.image_url }}" class="w-100 h-100 object-fit-cover" alt="{{ title }}">
+            {% else %}
+            <div class="d-flex align-items-center justify-content-center text-white-50">
+              <i class="bi bi-gear-wide-connected" style="font-size: 3rem"></i>
+            </div>
+            {% endif %}
+          </div>
+          <div class="card-body d-flex flex-column">
+            <div class="mb-2">
+              <span class="badge rounded-pill bg-primary-subtle text-primary">Layanan</span>
+            </div>
+            <h5 class="card-title">{{ title }}</h5>
+            <p class="card-text text-muted flex-grow-1">
+              {% if desc %}
+                {{ desc }}
+              {% elif preview %}
+                {{ preview[:140] ~ ('...' if preview|length > 140 else '') }}
+              {% else %}
+                Konten layanan akan segera tersedia.
+              {% endif %}
+            </p>
+            <div class="d-flex justify-content-between align-items-center mt-2">
+              <a class="btn btn-outline-primary btn-sm" href="/layanan/{{ item.slug }}">View Detail</a>
+              <i class="bi bi-arrow-up-right text-primary"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+      <h3 class="fw-semibold">Layanan segera hadir</h3>
+      <p class="text-muted mb-0">Administrator belum menambahkan layanan. Silakan kembali lagi.</p>
+    </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}
