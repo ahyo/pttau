@@ -25,8 +25,10 @@ class Product(Base):
     name = Column(String(150), nullable=False)
     short_description = Column(String(255), nullable=True)
     description = Column(Text, nullable=True)
+    brand_id = Column(Integer, ForeignKey("brand.id", ondelete="SET NULL"), nullable=True)
 
     items = relationship("CartItem", back_populates="product")
+    brand = relationship("Brand", back_populates="products")
     translations = relationship(
         "ProductTranslation",
         back_populates="product",

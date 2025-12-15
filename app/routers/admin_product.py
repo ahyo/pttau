@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from slugify import slugify
 
 from app.db import get_db
+from app.models.brand import Brand
 from app.models.product import Product, ProductTranslation
 from app.ui import common_ctx, templates
 from app.services.translator import (
@@ -118,6 +119,8 @@ async def admin_product_create_form(request: Request, db: Session = Depends(get_
     if not require_admin(request):
         return RedirectResponse("/admin/login?msg=Please%20login", status_code=302)
 
+    brands = db.execute(select(Brand).order_by(Brand.name.asc())).scalars().all()
+
     return templates.TemplateResponse(
         "admin/products/form.html",
         common_ctx(
@@ -127,6 +130,8 @@ async def admin_product_create_form(request: Request, db: Session = Depends(get_
                 "product": None,
                 "form_data": {},
                 "translation_form": _build_translation_form(),
+                "brands": brands,
+                "selected_brand": None,
                 "translation_langs": [
                     {"code": lang, "label": LANG_LABELS.get(lang, lang.upper())}
                     for lang in SUPPORTED_LANGS
@@ -163,6 +168,7 @@ async def admin_product_create(
     name: str = Form(""),
     short_description: str = Form(""),
     description: str = Form(""),
+    brand_id: int | None = Form(None),
 ):
     if not require_admin(request):
         return RedirectResponse("/admin/login?msg=Please%20login", status_code=302)
@@ -179,6 +185,7 @@ async def admin_product_create(
     )
     product_slug = _normalize_slug(desired_slug)
     if _slug_exists(db, product_slug):
+        brands = db.execute(select(Brand).order_by(Brand.name.asc())).scalars().all()
         return templates.TemplateResponse(
             "admin/products/form.html",
             common_ctx(
@@ -192,19 +199,22 @@ async def admin_product_create(
                         "description": description,
                         "price": price,
                         "stock": stock,
-                    "image_url": image_url,
-                    "is_active": is_active,
-                },
-                "translation_form": translation_form,
-                "translation_langs": [
-                        {"code": lang, "label": LANG_LABELS.get(lang, lang.upper())}
-                        for lang in SUPPORTED_LANGS
-                    ],
-                    "error": "Slug sudah digunakan. Gunakan slug lain.",
-                },
-            ),
-            status_code=400,
-        )
+                        "image_url": image_url,
+                        "is_active": is_active,
+                        "brand_id": brand_id,
+                    },
+                    "translation_form": translation_form,
+                    "brands": brands,
+                    "selected_brand": brand_id,
+                    "translation_langs": [
+                            {"code": lang, "label": LANG_LABELS.get(lang, lang.upper())}
+                            for lang in SUPPORTED_LANGS
+                        ],
+                        "error": "Slug sudah digunakan. Gunakan slug lain.",
+                    },
+                ),
+                status_code=400,
+            )
 
     media_path = _save_upload(image_file)
     cleaned_image_url = (image_url or "").strip()
@@ -214,6 +224,7 @@ async def admin_product_create(
         stock=stock,
         image_url=media_path or (cleaned_image_url or None),
         is_active=is_active == "on",
+        brand_id=brand_id if brand_id else None,
         name=(name or product_slug).strip(),
         short_description=short_description.strip() or None,
         description=description,
@@ -255,6 +266,8 @@ async def admin_product_edit_form(
     if not product:
         return RedirectResponse("/admin/products?msg=Not%20found", status_code=302)
 
+    brands = db.execute(select(Brand).order_by(Brand.name.asc())).scalars().all()
+
     return templates.TemplateResponse(
         "admin/products/form.html",
         common_ctx(
@@ -263,6 +276,8 @@ async def admin_product_edit_form(
                 "mode": "edit",
                 "product": product,
                 "form_data": {},
+                "brands": brands,
+                "selected_brand": product.brand_id,
                 "translation_form": _build_translation_form(product),
                 "translation_langs": [
                     {"code": lang, "label": LANG_LABELS.get(lang, lang.upper())}
@@ -287,6 +302,7 @@ async def admin_product_edit(
     name: str = Form(""),
     short_description: str = Form(""),
     description: str = Form(""),
+    brand_id: int | None = Form(None),
 ):
     if not require_admin(request):
         return RedirectResponse("/admin/login?msg=Please%20login", status_code=302)
@@ -308,6 +324,7 @@ async def admin_product_edit(
     )
     new_slug = _normalize_slug(desired_slug)
     if _slug_exists(db, new_slug, exclude_product_id=product.id):
+        brands = db.execute(select(Brand).order_by(Brand.name.asc())).scalars().all()
         return templates.TemplateResponse(
             "admin/products/form.html",
             common_ctx(
@@ -323,8 +340,11 @@ async def admin_product_edit(
                         "stock": stock,
                         "image_url": image_url,
                         "is_active": is_active,
+                        "brand_id": brand_id,
                     },
                     "translation_form": translation_form,
+                    "brands": brands,
+                    "selected_brand": brand_id,
                     "translation_langs": [
                         {"code": lang, "label": LANG_LABELS.get(lang, lang.upper())}
                         for lang in SUPPORTED_LANGS
@@ -344,6 +364,7 @@ async def admin_product_edit(
     elif cleaned_image_url:
         product.image_url = cleaned_image_url
     product.is_active = is_active == "on"
+    product.brand_id = brand_id if brand_id else None
     product.name = (name or product.name or product.slug).strip()
     product.short_description = short_description.strip() or None
     product.description = description

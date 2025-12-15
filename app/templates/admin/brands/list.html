@@ -1,0 +1,65 @@
+{% extends "layouts/base.html" %}
+{% block title %}Kelola Brand — {{ settings.APP_NAME }}{% endblock %}
+{% block content %}
+<section class="py-5 bg-light">
+  <div class="container">
+    <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-4 gap-3">
+      <div>
+        <h1 class="h3 mb-1">Brand Produk</h1>
+        <p class="text-muted mb-0">Tambahkan atau ubah brand untuk dikaitkan dengan produk.</p>
+      </div>
+      <a class="btn btn-primary" href="/admin/brands/create">
+        <i class="bi bi-plus-lg me-1"></i>Brand Baru
+      </a>
+    </div>
+
+    {% if msg %}
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      {{ msg }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endif %}
+
+    <div class="card shadow-sm">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Nama</th>
+              <th class="text-end">Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if brands %}
+            {% for brand in brands %}
+            <tr>
+              <td>
+                <div class="fw-semibold">{{ brand.name }}</div>
+                <div class="text-muted small">/{{ brand.slug }}</div>
+              </td>
+              <td class="text-end">
+                <div class="btn-group">
+                  <a class="btn btn-sm btn-outline-secondary" href="/admin/brands/{{ brand.id }}/edit">
+                    <i class="bi bi-pencil"></i>
+                  </a>
+                  <form method="post" action="/admin/brands/{{ brand.id }}/delete" onsubmit="return confirm('Hapus brand ini?');">
+                    <button class="btn btn-sm btn-outline-danger" type="submit">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr>
+              <td colspan="2" class="text-center py-5 text-muted">Belum ada brand.</td>
+            </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

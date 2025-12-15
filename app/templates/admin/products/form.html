@@ -6,6 +6,8 @@
 {% set initial_image = (data.get('image_url') if data.get('image_url') else (product.image_url if product and product.image_url else '')) %}
 {% set translations = (translation_form if (translation_form is defined and translation_form) else {}) %}
 {% set translation_langs = translation_langs if translation_langs is defined else language_options[1:] %}
+{% set brand_options = brands if brands is defined else [] %}
+{% set selected_brand_id = data.get('brand_id', selected_brand if selected_brand is defined else None) %}
 
 <section class="py-5">
   <div class="container">
@@ -38,6 +40,15 @@
                     placeholder="otomatis bila dikosongkan"
                     value="{{ data.get('slug', product.slug if product else '') }}"
                   />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Brand</label>
+                  <select name="brand_id" class="form-select">
+                    <option value="">-- Tanpa brand --</option>
+                    {% for brand in brand_options %}
+                    <option value="{{ brand.id }}" {% if selected_brand_id and selected_brand_id|int == brand.id %}selected{% endif %}>{{ brand.name }}</option>
+                    {% endfor %}
+                  </select>
                 </div>
                 <div class="col-md-3">
                   <label class="form-label">Harga</label>

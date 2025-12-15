@@ -12,6 +12,7 @@ from app.routers import (
     admin_menu,
     admin_product,
     admin_service,
+    admin_brand,
     admin_order,
     auth,
     catalog,
@@ -119,4 +120,5 @@ app.include_router(admin_footer.router)
 app.include_router(admin_menu.router)
 app.include_router(admin_product.router)
 app.include_router(admin_service.router)
+app.include_router(admin_brand.router)
 app.include_router(admin_order.router)
