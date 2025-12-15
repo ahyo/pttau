@@ -1,5 +1,5 @@
 {% extends "layouts/base.html" %}
-{% set title = localized_attr(service, lang, 'title') or service.slug %}
+{% set title = localized_attr(service, lang, 'title') or service.slug or 'Layanan' %}
 {% set desc = localized_attr(service, lang, 'description') or '' %}
 {% set body = localized_attr(service, lang, 'content') or '' %}
 {% block title %}{{ title ~ ' — ' ~ settings.APP_NAME }}{% endblock %}

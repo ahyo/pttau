@@ -8,6 +8,7 @@
 {% set translation_langs = translation_langs if translation_langs is defined else language_options[1:] %}
 {% set brand_options = brands if brands is defined else [] %}
 {% set selected_brand_id = data.get('brand_id', selected_brand if selected_brand is defined else None) %}
+{% set gallery_note = "Unggah beberapa file sekaligus untuk galeri. File baru akan ditambahkan." %}
 
 <section class="py-5">
   <div class="container">
@@ -64,6 +65,17 @@
                       required
                     />
                   </div>
+                </div>
+                <div class="col-12">
+                  <label class="form-label">Galeri Gambar</label>
+                  <input
+                    name="gallery_files"
+                    type="file"
+                    accept="image/*"
+                    class="form-control"
+                    multiple
+                  />
+                  <div class="form-text">{{ gallery_note }}</div>
                 </div>
                 <div class="col-md-3">
                   <label class="form-label">Stok</label>

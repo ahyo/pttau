@@ -1,5 +1,5 @@
 from .page import Page, PageTranslation
-from .product import Product, ProductTranslation
+from .product import Product, ProductTranslation, ProductImage
 from .brand import Brand
 from .service import Service, ServiceTranslation
 from .cart import Cart, CartItem

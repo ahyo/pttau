@@ -34,6 +34,12 @@ class Product(Base):
         back_populates="product",
         cascade="all, delete-orphan",
     )
+    images = relationship(
+        "ProductImage",
+        back_populates="product",
+        cascade="all, delete-orphan",
+        order_by="ProductImage.sort_order.asc(), ProductImage.id.asc()",
+    )
 
     def get_translation(self, lang: str):
         if not lang or lang == "id":
@@ -52,3 +58,14 @@ class ProductTranslation(Base):
     description = Column(Text, nullable=True)
 
     product = relationship("Product", back_populates="translations")
+
+
+class ProductImage(Base):
+    __tablename__ = "product_image"
+
+    id = Column(Integer, primary_key=True, index=True)
+    product_id = Column(Integer, ForeignKey("product.id", ondelete="CASCADE"), nullable=False)
+    image_url = Column(String(255), nullable=False)
+    sort_order = Column(Integer, nullable=False, default=0)
+
+    product = relationship("Product", back_populates="images")

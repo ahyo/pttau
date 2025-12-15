@@ -10,7 +10,7 @@ from slugify import slugify
 
 from app.db import get_db
 from app.models.brand import Brand
-from app.models.product import Product, ProductTranslation
+from app.models.product import Product, ProductTranslation, ProductImage
 from app.ui import common_ctx, templates
 from app.services.translator import (
     translate_payload,
@@ -164,6 +164,7 @@ async def admin_product_create(
     stock: int = Form(0),
     image_url: str = Form(""),
     image_file: UploadFile = File(None),
+    gallery_files: list[UploadFile] = File([]),
     is_active: str = Form("on"),
     name: str = Form(""),
     short_description: str = Form(""),
@@ -217,6 +218,7 @@ async def admin_product_create(
             )
 
     media_path = _save_upload(image_file)
+    gallery_paths = _save_uploads(gallery_files)
     cleaned_image_url = (image_url or "").strip()
     product = Product(
         slug=product_slug,
@@ -231,6 +233,8 @@ async def admin_product_create(
     )
     db.add(product)
     db.flush()
+    for idx, path in enumerate(gallery_paths):
+        db.add(ProductImage(product_id=product.id, image_url=path, sort_order=idx))
 
     payload = {
         "name": product.name,
@@ -298,6 +302,7 @@ async def admin_product_edit(
     stock: int = Form(0),
     image_url: str = Form(""),
     image_file: UploadFile = File(None),
+    gallery_files: list[UploadFile] = File([]),
     is_active: str = Form("off"),
     name: str = Form(""),
     short_description: str = Form(""),
@@ -358,6 +363,7 @@ async def admin_product_edit(
     product.price = _parse_decimal(price)
     product.stock = stock
     media_path = _save_upload(image_file)
+    gallery_paths = _save_uploads(gallery_files)
     cleaned_image_url = (image_url or "").strip()
     if media_path:
         product.image_url = media_path
@@ -391,6 +397,9 @@ async def admin_product_edit(
 
     _ensure_translation_records(product, merged_translations, db)
 
+    for idx, path in enumerate(gallery_paths):
+        db.add(ProductImage(product_id=product.id, image_url=path, sort_order=idx))
+
     db.commit()
 
     return RedirectResponse("/admin/products?msg=Updated", status_code=302)
@@ -421,3 +430,14 @@ def _save_upload(upload: UploadFile | None) -> str | None:
     with open(path, "wb") as out:
         out.write(upload.file.read())
     return "/" + path.split("/", 1)[1]
+
+
+def _save_uploads(uploads: list[UploadFile] | None) -> list[str]:
+    saved: list[str] = []
+    if not uploads:
+        return saved
+    for upload in uploads:
+        path = _save_upload(upload)
+        if path:
+            saved.append(path)
+    return saved

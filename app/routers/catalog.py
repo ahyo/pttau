@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session, selectinload
 
 from app.config import settings
 from app.db import get_db
-from app.models.product import Product
+from app.models.product import Product, ProductImage
 from app.models.brand import Brand
 from app.services.content import get_page_by_slug
 from app.ui import common_ctx, templates
@@ -31,7 +31,11 @@ async def catalog_list(request: Request, db: Session = Depends(get_db)):
 
     products_query = (
         select(Product)
-        .options(selectinload(Product.translations), selectinload(Product.brand))
+        .options(
+            selectinload(Product.translations),
+            selectinload(Product.brand),
+            selectinload(Product.images),
+        )
         .where(Product.is_active == True)
         .order_by(Product.created_at.desc())
     )
@@ -70,7 +74,11 @@ async def catalog_detail(slug: str, request: Request, db: Session = Depends(get_
 
     product = db.execute(
         select(Product)
-        .options(selectinload(Product.translations), selectinload(Product.brand))
+        .options(
+            selectinload(Product.translations),
+            selectinload(Product.brand),
+            selectinload(Product.images),
+        )
         .where(Product.slug == slug, Product.is_active == True)
     ).scalar_one_or_none()
 

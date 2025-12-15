@@ -10,7 +10,8 @@
   'ko': 'Wulung AeroTech의 최고의 항공 솔루션입니다.',
   'zh-cn': 'Wulung AeroTech 为您的航空需求提供最佳解决方案。'
 }.get(lang, 'Solusi terbaik dari Wulung AeroTech untuk kebutuhan aeronautika Anda.') %}
-{% block title %}{{ localized_name or product.slug }} — {{ settings.APP_NAME }}{% endblock %}
+{% set product_heading = localized_name or product.slug or 'Produk' %}
+{% block title %}{{ product_heading }} — {{ settings.APP_NAME }}{% endblock %}
 {% block content %}
 <section class="pt-5 pb-4 bg-gradient" style="background: linear-gradient(135deg, #0f172a, #1d4ed8);">
   <div class="container py-4">
@@ -22,13 +23,35 @@
         </p>
       </div>
       <div class="col-lg-6" data-aos="fade-left">
-        <div class="ratio ratio-4x3 bg-dark rounded-4 overflow-hidden shadow-lg border border-white border-opacity-10">
-          {% if product.image_url %}
-          <img src="{{ product.image_url }}" alt="{{ localized_name or product.slug }}" class="w-100 h-100 object-fit-cover" />
-          {% else %}
-          <div class="d-flex align-items-center justify-content-center text-white-50">
-            <i class="bi bi-box-seam" style="font-size: 4rem;"></i>
+        <div id="productGallery" class="carousel slide shadow-lg rounded-4 overflow-hidden border border-white border-opacity-10">
+          <div class="carousel-inner ratio ratio-4x3 bg-dark">
+            {% set main_shown = False %}
+            {% if product.image_url %}
+            <div class="carousel-item active">
+              <img src="{{ product.image_url }}" class="d-block w-100 h-100 object-fit-cover" alt="{{ product_heading }}">
+            </div>
+            {% set main_shown = True %}
+            {% endif %}
+            {% for img in product.images %}
+            <div class="carousel-item {% if not main_shown and loop.index == 1 %}active{% endif %}">
+              <img src="{{ img.image_url }}" class="d-block w-100 h-100 object-fit-cover" alt="{{ product_heading }} {{ loop.index }}">
+            </div>
+            {% endfor %}
+            {% if not product.image_url and (product.images|length == 0) %}
+            <div class="d-flex align-items-center justify-content-center text-white-50">
+              <i class="bi bi-box-seam" style="font-size: 4rem;"></i>
+            </div>
+            {% endif %}
           </div>
+          {% if product.image_url or product.images %}
+          <button class="carousel-control-prev" type="button" data-bs-target="#productGallery" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+          </button>
+          <button class="carousel-control-next" type="button" data-bs-target="#productGallery" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+          </button>
           {% endif %}
         </div>
       </div>
