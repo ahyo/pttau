@@ -10,7 +10,8 @@
   'ko': 'Wulung AeroTech의 프리미엄 제품',
   'zh-cn': 'Wulung AeroTech 的高端产品'
 }.get(lang, 'Produk premium Wulung AeroTech') %}
-{% block title %}{{ (catalog_meta_title or catalog_title or 'Katalog Produk') ~ ' — ' ~ settings.APP_NAME }}{% endblock %}
+{% set catalog_heading = catalog_meta_title or catalog_title or 'Katalog Produk' %}
+{% block title %}{{ catalog_heading ~ ' — ' ~ settings.APP_NAME }}{% endblock %}
 {% block meta_desc %}{{ catalog_meta_desc or '' }}{% endblock %}
 {% block content %}
 {% if page %}
@@ -40,16 +41,12 @@
           <div class="fw-semibold">Brand Produk</div>
         </div>
         <form class="d-flex flex-wrap align-items-center gap-2 ms-md-auto" method="get">
-          <select name="brand" class="form-select" style="min-width: 220px;">
+          <select name="brand" class="form-select" style="min-width: 220px;" onchange="this.form.submit()">
             <option value="">Semua brand</option>
             {% for brand in brands %}
             <option value="{{ brand.slug }}" {% if active_brand and active_brand.id == brand.id %}selected{% endif %}>{{ brand.name }}</option>
             {% endfor %}
           </select>
-          <button class="btn btn-primary" type="submit">Terapkan</button>
-          {% if active_brand %}
-          <a class="btn btn-outline-secondary" href="/catalog">Reset</a>
-          {% endif %}
         </form>
       </div>
     </div>

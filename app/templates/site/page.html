@@ -4,7 +4,8 @@
 {% set localized_body = localized_attr(page, lang, 'body') or page.body %}
 {% set localized_meta_title = localized_attr(page, lang, 'meta_title') or page.meta_title %}
 {% set localized_meta_desc = localized_attr(page, lang, 'meta_desc') or page.meta_desc %}
-{% block title %}{{ (localized_meta_title or localized_title) ~ " — " ~ settings.APP_NAME }}{% endblock %}
+{% set page_heading = localized_meta_title or localized_title or 'Halaman' %}
+{% block title %}{{ page_heading ~ " — " ~ settings.APP_NAME }}{% endblock %}
 {% block meta_desc %}{{ localized_meta_desc or '' }}{% endblock %}
 {% block content %}
 {% if page.slug == "product" %}
