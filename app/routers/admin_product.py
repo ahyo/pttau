@@ -36,6 +36,17 @@ def _parse_decimal(value: str) -> Decimal:
         return Decimal("0.00")
 
 
+def _parse_int_or_none(value: str | int | None) -> int | None:
+    if value is None:
+        return None
+    try:
+        if isinstance(value, str) and not value.strip():
+            return None
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
 def _clean_text(value: str | None) -> str | None:
     if value is None:
         return None
@@ -174,11 +185,12 @@ async def admin_product_create(
     name: str = Form(""),
     short_description: str = Form(""),
     description: str = Form(""),
-    brand_id: int | None = Form(None),
+    brand_id: str = Form(""),
 ):
     if not require_admin(request):
         return RedirectResponse("/admin/login?msg=Please%20login", status_code=302)
 
+    parsed_brand_id = _parse_int_or_none(brand_id)
     form_payload = await request.form()
     translation_form = collect_translation_inputs(
         form_payload, ["name", "short_description", "description"]
@@ -208,12 +220,12 @@ async def admin_product_create(
                         "stock": stock,
                         "image_url": image_url,
                         "is_active": is_active,
-                        "brand_id": brand_id,
+                        "brand_id": parsed_brand_id,
                         "gallery_urls": gallery_urls,
                     },
                     "translation_form": translation_form,
                     "brands": brands,
-                    "selected_brand": brand_id,
+                    "selected_brand": parsed_brand_id,
                     "translation_langs": [
                             {"code": lang, "label": LANG_LABELS.get(lang, lang.upper())}
                             for lang in SUPPORTED_LANGS
@@ -241,7 +253,7 @@ async def admin_product_create(
         stock=stock,
         image_url=all_images[0] if all_images else (cleaned_image_url or None),
         is_active=is_active == "on",
-        brand_id=brand_id if brand_id else None,
+        brand_id=parsed_brand_id,
         name=(name or product_slug).strip(),
         short_description=short_description.strip() or None,
         description=description,
@@ -323,7 +335,7 @@ async def admin_product_edit(
     name: str = Form(""),
     short_description: str = Form(""),
     description: str = Form(""),
-    brand_id: int | None = Form(None),
+    brand_id: str = Form(""),
 ):
     if not require_admin(request):
         return RedirectResponse("/admin/login?msg=Please%20login", status_code=302)
@@ -332,6 +344,7 @@ async def admin_product_edit(
     if not product:
         return RedirectResponse("/admin/products?msg=Not%20found", status_code=302)
 
+    parsed_brand_id = _parse_int_or_none(brand_id)
     form_payload = await request.form()
     translation_form = collect_translation_inputs(
         form_payload, ["name", "short_description", "description"]
@@ -362,12 +375,12 @@ async def admin_product_edit(
                         "stock": stock,
                         "image_url": image_url,
                         "is_active": is_active,
-                        "brand_id": brand_id,
+                        "brand_id": parsed_brand_id,
                         "gallery_urls": gallery_urls,
                     },
                     "translation_form": translation_form,
                     "brands": brands,
-                    "selected_brand": brand_id,
+                    "selected_brand": parsed_brand_id,
                     "translation_langs": [
                         {"code": lang, "label": LANG_LABELS.get(lang, lang.upper())}
                         for lang in SUPPORTED_LANGS
@@ -402,7 +415,7 @@ async def admin_product_edit(
         elif cleaned_image_url:
             product.image_url = cleaned_image_url
     product.is_active = is_active == "on"
-    product.brand_id = brand_id if brand_id else None
+    product.brand_id = parsed_brand_id
     product.name = (name or product.name or product.slug).strip()
     product.short_description = short_description.strip() or None
     product.description = description
