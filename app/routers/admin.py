@@ -91,6 +91,15 @@ def _normalize_page_slug(value: str, fallback: str = "page") -> str:
     return normalized or fallback
 
 
+ARTICLE_PREFIX = "artikel-"
+
+
+def _normalize_article_slug(slug: str) -> str:
+    if not slug:
+        return slug
+    return slug if slug.startswith(ARTICLE_PREFIX) else f"{ARTICLE_PREFIX}{slug}"
+
+
 def _page_slug_exists(
     db: Session, slug: str, exclude_page_id: int | None = None
 ) -> bool:
@@ -303,6 +312,8 @@ async def pages_create(
     submitted_slug = (slug or "").strip()
     desired_source = submitted_slug or title or "page"
     normalized_slug = _normalize_page_slug(desired_source)
+    if template == "artikel":
+        normalized_slug = _normalize_article_slug(normalized_slug)
 
     if _page_slug_exists(db, normalized_slug):
         form_data = {
@@ -398,6 +409,8 @@ async def pages_edit(
     submitted_slug = (slug or "").strip()
     desired_source = submitted_slug or title or page.slug or "page"
     normalized_slug = _normalize_page_slug(desired_source, fallback=page.slug or "page")
+    if template == "artikel":
+        normalized_slug = _normalize_article_slug(normalized_slug)
 
     if _page_slug_exists(db, normalized_slug, exclude_page_id=page.id):
         form_data = {

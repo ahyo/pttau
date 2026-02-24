@@ -26,7 +26,7 @@
           <label class="form-label">Template</label>
           {% set sel = data.get('template', current.template if current else 'about') %}
           <select name="template" class="form-select">
-            {% for t in ['about','contact','custom'] %}
+          {% for t in ['about','contact','custom','artikel'] %}
               <option value="{{t}}" {{ 'selected' if t==sel else '' }}>{{ t }}</option>
             {% endfor %}
           </select>
