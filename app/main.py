@@ -19,6 +19,7 @@ from app.routers import (
     cart,
     services,
     product_page,
+    articles,
     site,
     api_public,
     admin,
@@ -112,6 +113,7 @@ app.include_router(catalog.router)
 app.include_router(cart.router)
 app.include_router(services.router)
 app.include_router(product_page.router)
+app.include_router(articles.router)
 app.include_router(site.router)
 app.include_router(api_public.router, prefix="/api")
 app.include_router(admin.router, prefix="")
