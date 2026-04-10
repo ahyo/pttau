@@ -31,9 +31,12 @@ def _clean(value: str | None) -> str | None:
     return trimmed or None
 
 
-async def _auto_section(name: str | None):
+async def _auto_section(
+    name: str | None,
+    manual_translations: dict[str, dict[str, str | None]] | None = None,
+):
     payload = {"name": name}
-    return await translate_payload(payload, SUPPORTED_LANGS)
+    return await translate_payload(payload, SUPPORTED_LANGS, manual_translations)
 
 
 def _ensure_section_translations(
@@ -69,9 +72,12 @@ def _build_section_translation_form(
     return result
 
 
-async def _auto_link(html: str | None):
+async def _auto_link(
+    html: str | None,
+    manual_translations: dict[str, dict[str, str | None]] | None = None,
+):
     payload = {"html_content": html}
-    return await translate_payload(payload, SUPPORTED_LANGS)
+    return await translate_payload(payload, SUPPORTED_LANGS, manual_translations)
 
 
 def _ensure_link_translations(
@@ -259,7 +265,7 @@ async def section_edit(
         lang: _clean(raw_translations.get(lang, {}).get("name"))
         for lang in SUPPORTED_LANGS
     }
-    auto_map_raw = await _auto_section(section.name)
+    auto_map_raw = await _auto_section(section.name, raw_translations)
     auto_map = {
         lang: _clean(data.get("name")) if isinstance(data, dict) else None
         for lang, data in auto_map_raw.items()
@@ -337,7 +343,7 @@ async def link_edit(
         lang: _clean(raw_translations.get(lang, {}).get("html_content"))
         for lang in SUPPORTED_LANGS
     }
-    auto_map_raw = await _auto_link(link.html_content)
+    auto_map_raw = await _auto_link(link.html_content, raw_translations)
     auto_map = {
         lang: _clean(data.get("html_content")) if isinstance(data, dict) else None
         for lang, data in auto_map_raw.items()

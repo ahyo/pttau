@@ -45,9 +45,12 @@ def _ensure_menu_translations(item: MenuItem, data: dict[str, str | None], db: S
         )
 
 
-async def _auto_menu_translations(label: str | None) -> dict[str, str | None]:
+async def _auto_menu_translations(
+    label: str | None,
+    manual_translations: dict[str, dict[str, str | None]] | None = None,
+) -> dict[str, str | None]:
     payload = {"label": label or ""}
-    translated = await translate_payload(payload, SUPPORTED_LANGS)
+    translated = await translate_payload(payload, SUPPORTED_LANGS, manual_translations)
     return {lang: data.get("label") for lang, data in translated.items()}
 
 
@@ -269,7 +272,7 @@ async def menu_edit(
     item.icon = icon or None
     item.label = label or item.label or "Menu"
 
-    auto_translations = await _auto_menu_translations(item.label)
+    auto_translations = await _auto_menu_translations(item.label, translation_form)
     merged: dict[str, str | None] = {}
     for lang in SUPPORTED_LANGS:
         manual_val = translation_form.get(lang, {}).get("label")

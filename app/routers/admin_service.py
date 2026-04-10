@@ -45,10 +45,11 @@ def _clean_text(value: str | None) -> str | None:
 
 
 async def _auto_translate_fields(
-    payload: dict[str, str | None]
+    payload: dict[str, str | None],
+    manual_translations: dict[str, dict[str, str | None]] | None = None,
 ) -> dict[str, dict[str, str | None]]:
     try:
-        return await translate_payload(payload, SUPPORTED_LANGS)
+        return await translate_payload(payload, SUPPORTED_LANGS, manual_translations)
     except Exception as exc:  # pragma: no cover - translation service might be unavailable
         logger.warning("Auto translation unavailable, reusing source text: %s", exc)
         return {lang: dict(payload) for lang in SUPPORTED_LANGS}
@@ -209,7 +210,7 @@ async def admin_service_create(
         "description": service.description,
         "content": service.content,
     }
-    auto_data = await _auto_translate_fields(payload)
+    auto_data = await _auto_translate_fields(payload, translation_form)
     merged: dict[str, dict[str, str | None]] = {}
     for lang in SUPPORTED_LANGS:
         manual = translation_form.get(lang, {})
@@ -336,7 +337,7 @@ async def admin_service_edit(
         "description": service.description,
         "content": service.content,
     }
-    auto_translations = await _auto_translate_fields(auto_payload)
+    auto_translations = await _auto_translate_fields(auto_payload, translation_form)
     merged_translations: dict[str, dict[str, str | None]] = {}
     for lang in SUPPORTED_LANGS:
         manual = translation_form.get(lang, {})

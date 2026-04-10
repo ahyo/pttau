@@ -31,7 +31,10 @@ def _clean(value: str | None) -> str | None:
     return trimmed or None
 
 
-async def _auto_page_translations(page: Page) -> dict[str, dict[str, str | None]]:
+async def _auto_page_translations(
+    page: Page,
+    manual_translations: dict[str, dict[str, str | None]] | None = None,
+) -> dict[str, dict[str, str | None]]:
     payload = {
         "title": page.title,
         "excerpt": page.excerpt,
@@ -39,7 +42,7 @@ async def _auto_page_translations(page: Page) -> dict[str, dict[str, str | None]
         "meta_title": page.meta_title,
         "meta_desc": page.meta_desc,
     }
-    return await translate_payload(payload, SUPPORTED_LANGS)
+    return await translate_payload(payload, SUPPORTED_LANGS, manual_translations)
 
 
 def _ensure_page_translations(
@@ -348,7 +351,7 @@ async def pages_create(
     db.add(page)
     db.flush()
 
-    auto_translations = await _auto_page_translations(page)
+    auto_translations = await _auto_page_translations(page, translation_form)
     merged: dict[str, dict[str, str | None]] = {}
     for lang in SUPPORTED_LANGS:
         manual = translation_form.get(lang, {})
@@ -445,7 +448,7 @@ async def pages_edit(
 
     db.flush()
 
-    auto_translations = await _auto_page_translations(page)
+    auto_translations = await _auto_page_translations(page, translation_form)
     merged: dict[str, dict[str, str | None]] = {}
     for lang in SUPPORTED_LANGS:
         manual = translation_form.get(lang, {})
